@@ -86,11 +86,12 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 > **Progress:** domain bought; GitHub repo live at
 > `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
 > Supabase project created and all SQL run and verified; Polly's admin
-> login created. Next: Resend, then Netlify deploy.
+> login created; Stripe account created and identity-verified.
+> Next: Netlify deploy, then Resend, then DNS at Wix (piecesbyp.com).
 
 **Start early — these have waiting periods**
 
-1. [ ] ⏳ Polly creates Stripe account and completes identity verification (3–5 business days)
+1. [x] ⏳ Polly creates Stripe account and completes identity verification (3–5 business days)
 2. [x] Buy the domain
 
 **Accounts and setup**
