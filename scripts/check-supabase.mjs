@@ -67,7 +67,8 @@ if (settings.error) {
   const d = settings.data.data ?? {};
   ok(`site_settings row found (brand: ${d.brand ?? "unset"})`);
   if (!d.hero || !d.about || !d.contact) {
-    warn("hero/about/contact copy not set — run supabase/seed.sql for dev content");
+    warn("hero/about/contact copy not set — the owner writes this in /admin");
+    warn("  (dev projects only: supabase/seed.sql loads sample copy)");
   } else {
     ok("hero / about / contact copy present");
   }
@@ -78,7 +79,8 @@ const products = await supabase.from("products").select("id, name, active").eq("
 if (products.error) {
   fail(`cannot read products — did schema.sql run? (${products.error.message})`);
 } else if (products.data.length === 0) {
-  warn("no active products — run supabase/seed.sql to load the sample pieces");
+  warn("no active products yet — the owner adds pieces in /admin");
+  warn("  (dev projects only: supabase/seed.sql loads 12 samples)");
 } else {
   ok(`${products.data.length} active products readable`);
 }

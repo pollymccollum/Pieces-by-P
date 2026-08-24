@@ -34,6 +34,10 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+# any local variant, backup, or copy - these hold real secrets
+.env.local.*
+.env.*.backup
+*.env.backup
 
 # vercel
 .vercel
