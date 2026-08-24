@@ -27,7 +27,9 @@ export type OrderEmailData = {
   brand: string;
 };
 
-function shell(brand: string, heading: string, body: string): string {
+// `location` comes from site settings, so the owner moving town is an
+// admin edit rather than a code change.
+function shell(brand: string, heading: string, body: string, location = ""): string {
   return `<!doctype html>
 <html><body style="margin:0;padding:0;background:${CREAM};">
   <div style="max-width:560px;margin:0 auto;padding:28px 20px;font-family:Helvetica,Arial,sans-serif;color:${INK};">
@@ -39,7 +41,7 @@ function shell(brand: string, heading: string, body: string): string {
       ${body}
     </div>
     <p style="text-align:center;font-size:11px;color:${INK_SOFT};margin-top:18px;line-height:1.6;">
-      ${esc(brand)} — handmade to order in Anderson, South Carolina
+      ${esc(brand)}${location ? ` — handmade to order in ${esc(location)}` : ""}
     </p>
   </div>
 </body></html>`;

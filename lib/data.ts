@@ -16,7 +16,7 @@ import type {
 // only sets brand/announce/shipping/categories, not hero/about/contact).
 const FALLBACK_SETTINGS: SiteSettingsData = {
   brand: "Pieces by P",
-  announce: "Handmade to order in Anderson, SC",
+  announce: "Handmade to order in Easley, SC",
   freeShipOver: 50,
   flatShip: 5,
   venmoHandle: "",
@@ -40,7 +40,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     eyebrowScript: "by Polly",
     title: "Colorful little pieces",
     titleScript: "worth collecting",
-    lede: "Beaded necklaces, stacks, chokers, and charms, made to order in Anderson, South Carolina. Pick your piece, tell us your colors, and we'll make it yours.",
+    lede: "Beaded necklaces, stacks, chokers, and charms, made to order in Easley, South Carolina. Pick your piece, tell us your colors, and we'll make it yours.",
     cta: "Shop the collection",
   },
   about: {
@@ -53,7 +53,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     instagram: "@shop.piecesbyp",
     email: "hello@piecesbyp.co",
     maker: "Polly McCollum",
-    location: "Anderson, South Carolina",
+    location: "Easley, South Carolina",
     findus: "local pop-ups and markets",
   },
 };
@@ -151,7 +151,7 @@ export async function getAllProductsForOwner(): Promise<Product[]> {
 
 // ── orders ──────────────────────────────────────────────────
 
-// The shop is in Anderson, South Carolina. Dates are formatted server-side
+// The shop is in Easley, South Carolina. Dates are formatted server-side
 // in this zone rather than the browser's: it keeps server and client HTML
 // identical (no hydration mismatch) and shows Polly her own local time
 // regardless of where the site ends up hosted.
