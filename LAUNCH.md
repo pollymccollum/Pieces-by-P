@@ -360,7 +360,35 @@ enters her real inventory through the admin — that's her work, not a technical
 migration, and it's the longest task in this list. Deploy early so she can
 start it in parallel.
 
-## 7. Keeping the site up
+## 7. Why the GitHub repo is public
+
+Netlify's free plan allows **one Git contributor on a private repo**. The
+Netlify account is Polly's, but the commits are authored by Jack, so every
+build failed with *"unrecognized Git contributor"*. The repo was made public
+to get past it — public repos have no contributor limit.
+
+**Nothing sensitive is in it.** Audited across the full commit history:
+
+- No API keys or credentials. `.env.local` has never been committed; every
+  secret lives there and in Netlify's environment settings.
+- No customer data. The only email addresses in the repo are the invented
+  ones in `seed-orders.sql`.
+- Security does not depend on the code being secret. It rests on the RLS
+  policies (verified: anonymous visitors can create an order and cannot read
+  one), the service-role key that never leaves the server, and Stripe's
+  webhook signature check.
+
+**To make it private again**, one of these has to be true:
+
+1. Future commits are authored by Polly (i.e. Jack works signed in as her),
+   so there is only one contributor — this fits the handover plan anyway; or
+2. Netlify Pro, ~$19/month.
+
+Making it private does **not** take the site down — Netlify keeps serving the
+last successful build. It only blocks future builds from a second
+contributor.
+
+## 8. Keeping the site up
 
 Once deployed, the site runs on Netlify's servers 24/7. **No laptop is
 involved.** Netlify is self-healing and very reliable — it is not the thing
@@ -402,7 +430,7 @@ Supabase Pro ($25/month) removes pausing entirely. Not worth buying up front:
 the uptime monitor solves the same problem for free, and once the shop has
 real customers the traffic keeps it awake on its own.
 
-## 8. After handover
+## 9. After handover
 
 - Polly runs everything day to day: orders, pieces, photos, prices, stock,
   all site wording, section layout, accent colour, logo.
