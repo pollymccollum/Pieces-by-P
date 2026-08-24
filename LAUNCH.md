@@ -87,7 +87,9 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 > `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
 > Supabase project created and all SQL run and verified; Polly's admin
 > login created; Stripe account created and identity-verified.
-> Next: Netlify deploy, then Resend, then DNS at Wix (piecesbyp.com).
+> **Site is LIVE at https://piecesbyp.netlify.app** (public, serving her
+> database, admin gated). Next: Stripe webhook, Resend, then DNS at Wix
+> to point piecesbyp.com at it.
 
 **Start early — these have waiting periods**
 
@@ -110,8 +112,8 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 7. [x] Polly creates her admin login (Supabase → Authentication → Users)
 8. [ ] Polly creates Resend account
 9. [ ] ⏳ Verify the domain in Resend (2 DNS records; propagation can take hours)
-10. [ ] Polly creates Netlify account
-11. [ ] Jack deploys, sets all environment variables in Netlify
+10. [x] Polly creates Netlify account
+11. [x] Jack deploys, sets all environment variables in Netlify
 12. [ ] Point the domain at Netlify
 
 **Polly's content — the longest job, can start as soon as step 11 is done**
