@@ -8,6 +8,7 @@ import { signOut } from "./actions-auth";
 // Orders first: it's what she opens every day.
 const TABS = [
   { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/messages", label: "Messages" },
   { href: "/admin/products", label: "Pieces" },
   { href: "/admin/content", label: "Site content" },
 ];

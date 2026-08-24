@@ -45,6 +45,8 @@ function shell(brand: string, heading: string, body: string): string {
 </body></html>`;
 }
 
+const NEWLINE = String.fromCharCode(10);
+
 function esc(s: string): string {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -296,5 +298,45 @@ export function orderShipped(args: {
     subject: `${args.orderNumber} has shipped`,
     html,
     text,
+  };
+}
+
+// ── 5. New contact message (to Polly) ───────────────────────
+export function ownerNewMessage(args: {
+  brand: string;
+  name: string;
+  email: string;
+  body: string;
+  adminUrl: string;
+}): Mail {
+  const html = shell(
+    args.brand,
+    `Message from ${args.name}`,
+    `
+    <p style="margin:0 0 14px;font-size:13px;color:${INK_SOFT};">
+      <a href="mailto:${esc(args.email)}" style="color:${SAGE_DEEP};">${esc(args.email)}</a>
+    </p>
+    <div style="background:${CREAM};border:1px solid ${HAIR};border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${esc(args.body)}</div>
+    <p style="margin:20px 0 0;">
+      <a href="${esc(args.adminUrl)}" style="display:inline-block;background:${SAGE_DEEP};color:#ffffff;text-decoration:none;border-radius:22px;padding:11px 22px;font-size:13px;">Open your messages</a>
+    </p>
+  `
+  );
+
+  const text = [
+    `Message from ${args.name}`,
+    args.email,
+    "",
+    args.body,
+    "",
+    args.adminUrl,
+  ].join(NEWLINE);
+
+  return {
+    to: process.env.ADMIN_EMAIL?.trim() ?? "",
+    subject: `Message from ${args.name}`,
+    html,
+    text,
+    replyTo: args.email,
   };
 }

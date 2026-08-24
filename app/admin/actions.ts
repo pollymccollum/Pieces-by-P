@@ -549,3 +549,23 @@ function storagePathFromUrl(url: string): string | null {
   if (at === -1) return null;
   return decodeURIComponent(url.slice(at + marker.length));
 }
+
+// ── contact messages ────────────────────────────────────────
+
+export async function setMessageHandled(id: string, handled: boolean): Promise<ActionResult> {
+  await requireOwner();
+  const supabase = await getSupabaseAuthClient();
+  const { error } = await supabase.from("messages").update({ handled }).eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/messages");
+  return { ok: true };
+}
+
+export async function deleteMessage(id: string): Promise<ActionResult> {
+  await requireOwner();
+  const supabase = await getSupabaseAuthClient();
+  const { error } = await supabase.from("messages").delete().eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/messages");
+  return { ok: true };
+}

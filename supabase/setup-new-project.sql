@@ -11,6 +11,7 @@
 --   3. storage.sql
 --   4. layout-settings.sql
 --   5. add-stock.sql
+--   6. add-messages.sql
 --
 -- Supabase will warn about "destructive operations". That is the
 -- `drop policy if exists` and `create or replace function` lines, which
@@ -27,7 +28,7 @@
 
 
 -- ==========================================================
--- [1/5]  schema.sql
+-- [1/6]  schema.sql
 -- ==========================================================
 
 -- ============================================================
@@ -191,7 +192,7 @@ insert into site_settings (id, data) values (1, jsonb_build_object(
 
 
 -- ==========================================================
--- [2/5]  rls.sql
+-- [2/6]  rls.sql
 -- ==========================================================
 
 -- ============================================================
@@ -233,7 +234,7 @@ create policy "owner read items"    on order_items    for select using (auth.rol
 
 
 -- ==========================================================
--- [3/5]  storage.sql
+-- [3/6]  storage.sql
 -- ==========================================================
 
 -- ============================================================
@@ -275,7 +276,7 @@ create policy "owner delete photos"
 
 
 -- ==========================================================
--- [4/5]  layout-settings.sql
+-- [4/6]  layout-settings.sql
 -- ==========================================================
 
 -- ============================================================
@@ -309,7 +310,7 @@ where id = 1;
 
 
 -- ==========================================================
--- [5/5]  add-stock.sql
+-- [5/6]  add-stock.sql
 -- ==========================================================
 
 -- ============================================================
@@ -428,3 +429,49 @@ revoke all on function reserve_stock(jsonb) from public;
 revoke all on function release_stock(jsonb) from public;
 grant execute on function reserve_stock(jsonb) to anon, authenticated;
 grant execute on function release_stock(jsonb) to anon, authenticated;
+
+
+-- ==========================================================
+-- [6/6]  add-messages.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Contact form messages
+-- Run once per project, after schema.sql. Safe to re-run.
+--
+-- The contact form saves here rather than only emailing. Two reasons:
+--   1. It works whether or not email is configured — a message can never
+--      be lost because a mail provider was down or not set up yet.
+--   2. Polly gets one place to see enquiries, alongside her orders.
+-- An email notification is sent as well when email is configured.
+-- ============================================================
+
+create table if not exists messages (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  email       text not null,
+  body        text not null,
+  handled     boolean not null default false,  -- she ticks these off
+  created_at  timestamptz not null default now()
+);
+create index if not exists messages_created_idx on messages (created_at desc);
+
+alter table messages enable row level security;
+
+-- Anyone can send a message. Nobody but the owner can read them —
+-- same shape as orders: public INSERT, owner SELECT/UPDATE.
+drop policy if exists "public send message" on messages;
+create policy "public send message"
+  on messages for insert with check (true);
+
+drop policy if exists "owner read messages" on messages;
+create policy "owner read messages"
+  on messages for select using (auth.role() = 'authenticated');
+
+drop policy if exists "owner update messages" on messages;
+create policy "owner update messages"
+  on messages for update using (auth.role() = 'authenticated');
+
+drop policy if exists "owner delete messages" on messages;
+create policy "owner delete messages"
+  on messages for delete using (auth.role() = 'authenticated');

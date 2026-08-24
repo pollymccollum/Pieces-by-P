@@ -9,7 +9,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 // Order matters: tables, then security, then storage, then defaults.
-const FILES = ["schema.sql", "rls.sql", "storage.sql", "layout-settings.sql", "add-stock.sql"];
+const FILES = [
+  "schema.sql",
+  "rls.sql",
+  "storage.sql",
+  "layout-settings.sql",
+  "add-stock.sql",
+  "add-messages.sql",
+];
 
 // Deliberately excluded — see the header text below.
 const EXCLUDED = ["seed.sql", "seed-orders.sql", "add-contact-fields.sql"];

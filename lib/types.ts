@@ -83,6 +83,20 @@ export type CartItem = {
 
 export type CartLine = CartItem & { product: Product };
 
+// ── contact messages ────────────────────────────────────────
+// Enquiries from the contact form. Stored rather than only emailed, so a
+// message survives email being misconfigured or a provider outage.
+
+export type Message = {
+  id: string;
+  name: string;
+  email: string;
+  body: string;
+  handled: boolean;
+  created_at: string;
+  dateLabel: string; // preformatted server-side, like orders
+};
+
 // ── orders ──────────────────────────────────────────────────
 // Mirrors the orders / order_items tables. Line items snapshot the name
 // and price at purchase time, so an order stays correct even if the piece

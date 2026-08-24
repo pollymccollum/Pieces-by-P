@@ -1,4 +1,5 @@
 import type { ContactContent } from "@/lib/types";
+import { ContactForm } from "./ContactForm";
 
 export function ContactSection({ contact }: { contact: ContactContent }) {
   return (
@@ -24,17 +25,7 @@ export function ContactSection({ contact }: { contact: ContactContent }) {
           </div>
         </div>
         <div>
-          <div className="pp-cform">
-            <input className="pp-input" placeholder="Your name" disabled />
-            <input className="pp-input" placeholder="Email" disabled />
-            <textarea className="pp-textarea" placeholder="Custom colors, an initial, a question…" disabled />
-            <button className="pp-btn sage" style={{ justifySelf: "start" }} disabled>
-              Send message
-            </button>
-            <p className="pp-note">
-              This form isn&apos;t wired up yet — email {contact.email} directly for now.
-            </p>
-          </div>
+          <ContactForm fallbackEmail={contact.email} />
         </div>
       </div>
     </section>

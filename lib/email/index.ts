@@ -4,6 +4,7 @@ import { sendMail, isEmailConfigured } from "./client";
 import {
   orderConfirmation,
   orderShipped,
+  ownerNewMessage,
   ownerNewOrder,
   paymentReceived,
   type OrderEmailData,
@@ -81,4 +82,16 @@ export async function sendPaymentReceivedEmail(order: Order, brand: string): Pro
       totalCents: order.total_cents,
     })
   );
+}
+
+// Tells Polly a contact-form message arrived. The message is already saved
+// to the database by this point, so a failure here loses nothing.
+export async function notifyOwnerOfMessage(args: {
+  name: string;
+  email: string;
+  body: string;
+  brand: string;
+}): Promise<void> {
+  if (!isEmailConfigured()) return;
+  await sendMail(ownerNewMessage({ ...args, adminUrl: `${siteUrl()}/admin/messages` }));
 }

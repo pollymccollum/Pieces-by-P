@@ -2,6 +2,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAuthClient } from "@/lib/supabase/admin-client";
 import type {
   FulfillmentStatus,
+  Message,
   Order,
   PaymentMethod,
   PaymentStatus,
@@ -226,4 +227,35 @@ export function summariseOrders(orders: Order[]): OrderStats {
       .reduce((sum, o) => sum + o.total_cents, 0),
     awaitingPaymentCount: orders.filter((o) => o.payment_status === "pending").length,
   };
+}
+
+// ── contact messages ────────────────────────────────────────
+
+export async function getMessagesForOwner(): Promise<Message[]> {
+  const supabase = await getSupabaseAuthClient();
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, name, email, body, handled, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((m) => ({
+    id: m.id,
+    name: m.name,
+    email: m.email,
+    body: m.body,
+    handled: m.handled,
+    created_at: m.created_at,
+    dateLabel: formatOrderDate(m.created_at),
+  }));
+}
+
+export async function countUnhandledMessages(): Promise<number> {
+  const supabase = await getSupabaseAuthClient();
+  const { count, error } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("handled", false);
+  return error ? 0 : (count ?? 0);
 }
