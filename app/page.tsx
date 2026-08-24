@@ -2,6 +2,18 @@ import { isSupabaseConfigured } from "@/lib/supabase/server";
 import { getProducts, getSiteSettings } from "@/lib/data";
 import { Storefront } from "@/components/storefront/Storefront";
 
+// Always render fresh from the database.
+//
+// Without this Next prerenders this page at build time, which is wrong for a
+// live shop in two ways: a piece added in /admin would not appear until the
+// next deploy, and — worse — the stock count shown to shoppers would be the
+// count at build time. Someone could be offered the last piece minutes after
+// it sold. (reserve_stock still refuses to oversell at checkout, but the
+// shopper would only find out after filling in the whole form.)
+//
+// Cost is one Supabase read per page view, which is nothing at this scale.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   if (!isSupabaseConfigured()) {
     return <SetupNotice />;
