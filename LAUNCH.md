@@ -83,16 +83,21 @@ These cannot be delegated — they're tied to her legal identity:
 
 Rough order of operations. Items marked ⏳ have a waiting period.
 
+> **Progress:** domain bought; GitHub repo live at
+> `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
+> Supabase project created and all SQL run and verified; Polly's admin
+> login created. Next: Resend, then Netlify deploy.
+
 **Start early — these have waiting periods**
 
 1. [ ] ⏳ Polly creates Stripe account and completes identity verification (3–5 business days)
-2. [ ] Buy the domain
+2. [x] Buy the domain
 
 **Accounts and setup**
 
-3. [ ] Polly creates a GitHub account; transfer the repo to her, add Jack as collaborator
-4. [ ] Polly creates Supabase project (free tier)
-5. [ ] Jack runs these five in the Supabase SQL Editor, **in this order**:
+3. [x] Polly creates a GitHub account; transfer the repo to her, add Jack as collaborator
+4. [x] Polly creates Supabase project (free tier)
+5. [x] Jack runs these five in the Supabase SQL Editor, **in this order**:
        `schema.sql` → `rls.sql` → `storage.sql` → `layout-settings.sql` → `add-stock.sql`
        - **Do not run** `seed.sql` or `seed-orders.sql` — fake pieces and fake
          customers, dev only.
@@ -100,8 +105,8 @@ Rough order of operations. Items marked ⏳ have a waiting period.
          made before those columns existed; `schema.sql` already includes them.
        - `add-stock.sql` **is** required despite its name: the stock functions
          checkout depends on live only in that file.
-6. [ ] Jack runs `verify-rls.sql`, then `npm run check:supabase` — both should come back clean
-7. [ ] Polly creates her admin login (Supabase → Authentication → Users)
+6. [x] Jack runs `verify-rls.sql`, then `npm run check:supabase` — both should come back clean
+7. [x] Polly creates her admin login (Supabase → Authentication → Users)
 8. [ ] Polly creates Resend account
 9. [ ] ⏳ Verify the domain in Resend (2 DNS records; propagation can take hours)
 10. [ ] Polly creates Netlify account
