@@ -1,0 +1,20 @@
+# Netlify build configuration.
+#
+# Kept in the repo rather than set in the dashboard so it is version
+# controlled, reviewable, and survives the site being recreated.
+
+[build.environment]
+  # Netlify scans the build for leaked secrets and fails the build if it
+  # finds one. Keep that on — it is a genuinely useful safety net.
+  #
+  # Turbopack writes compiled module state, including env values read by
+  # server code, into its build cache. That cache lives here, is used only
+  # to speed up the NEXT build, and is never published to the CDN or served
+  # to a visitor. Scanning it produces a false positive on
+  # STRIPE_WEBHOOK_SECRET that blocks every deploy.
+  #
+  # Excluding this one path keeps scanning active on the actual published
+  # output — which is where a leaked secret would genuinely matter — rather
+  # than turning the check off (SECRETS_SCAN_ENABLED=false) or blinding it
+  # to this key everywhere (SECRETS_SCAN_OMIT_KEYS).
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache"
