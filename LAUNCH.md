@@ -87,14 +87,23 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 > `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
 > Supabase project created and all SQL run and verified; Polly's admin
 > login created; Stripe account created and identity-verified.
-> **LIVE at https://piecesbyp.com** — HTTPS (Let's Encrypt), www redirects
-> to the apex, serving her database, admin gated at /admin.
+> **LIVE at https://piecesbyp.com** — HTTPS (Let's Encrypt), www redirects to
+> the apex, serving her database, admin gated at /admin.
 > DNS stays at Wix: A `@` -> 75.2.60.5, CNAME `www` -> piecesbyp.netlify.app.
 >
-> Outstanding: (1) NEXT_PUBLIC_SITE_URL still points at the netlify.app
-> address, (2) Stripe webhook not created — card payments do not record,
-> (3) email undecided — Wix DNS cannot do the subdomain MX Resend needs,
-> so either switch to SendGrid (CNAME-only) or move DNS off Wix.
+> **Still to do:**
+> 1. **Stripe webhook** — not created. Card payments do NOT record: Stripe
+>    would take the money and no order would appear in the admin. Endpoint
+>    `https://piecesbyp.com/api/stripe/webhook`, event
+>    `checkout.session.completed`, then add `STRIPE_WEBHOOK_SECRET` in
+>    Netlify and redeploy.
+> 2. **Email** — blocked at Wix: it refuses MX records on subdomains, which
+>    Resend requires. Either switch to SendGrid (verifies with CNAMEs, works
+>    on Wix) or move DNS off Wix.
+> 3. **Polly's inventory** — shop is still empty. The longest job left.
+> 4. **Smoke test**, then swap Stripe to live keys.
+>
+> **Do not announce the shop until 1 and 4 are done.**
 
 **Start early — these have waiting periods**
 
