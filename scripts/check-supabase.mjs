@@ -32,6 +32,33 @@ ok(`env vars present (${url})`);
 
 const supabase = createClient(url, anonKey, { auth: { persistSession: false } });
 
+// Reachability probe, before any other check.
+//
+// Without this, a paused or unreachable project returns 'fetch failed' on
+// every query — and several checks below treat *any* error as the expected
+// one, so a dead database reported three PASSING checks. A false green is
+// worse than no check at all, so stop dead here instead.
+{
+  const { error } = await supabase.from("site_settings").select("id").limit(1);
+  const unreachable =
+    error &&
+    /fetch failed|ENOTFOUND|ECONNREFUSED|network|timeout|getaddrinfo/i.test(error.message);
+
+  if (unreachable) {
+    fail(`cannot reach ${url}`);
+    console.log("");
+    console.log("  The project is unreachable. Most likely it is PAUSED —");
+    console.log("  Supabase pauses free projects after ~7 days with no traffic.");
+    console.log("  Open the Supabase dashboard, press Restore/Resume, wait a");
+    console.log("  minute, then run this again.");
+    console.log("");
+    console.log("  (Other causes: wrong NEXT_PUBLIC_SUPABASE_URL, deleted project,");
+    console.log("   or no internet connection.)");
+    console.log("");
+    process.exit(1);
+  }
+}
+
 // 2. schema.sql
 const settings = await supabase.from("site_settings").select("data").eq("id", 1).single();
 if (settings.error) {
