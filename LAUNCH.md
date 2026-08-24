@@ -130,6 +130,8 @@ accounts and *her* keys.
         there for the first few messages.
 18. [ ] Set a piece's stock to 1, buy it, confirm it flips to **SOLD OUT**
 19. [ ] Open the shop on her phone — this is how most customers will see it
+19b. [ ] Set up the free uptime monitor (section 7) — this is what stops
+        Supabase pausing and taking the shop offline during a quiet week
 
 **Go live**
 
@@ -336,7 +338,49 @@ enters her real inventory through the admin — that's her work, not a technical
 migration, and it's the longest task in this list. Deploy early so she can
 start it in parallel.
 
-## 7. After handover
+## 7. Keeping the site up
+
+Once deployed, the site runs on Netlify's servers 24/7. **No laptop is
+involved.** Netlify is self-healing and very reliable — it is not the thing
+that will take the shop down.
+
+### The real risk: Supabase pausing
+
+Supabase pauses free projects after **~7 days with no traffic**. If that
+happens the website still loads, but products, orders, and the admin all
+break, because the data behind them is asleep. For a new shop that has not
+been announced yet, a quiet week is entirely plausible.
+
+### Fix: a free uptime monitor (do this at launch)
+
+Sign up at [uptimerobot.com](https://uptimerobot.com) (free tier is plenty)
+and add one monitor:
+
+- **URL:** the live site (`https://piecesbyp.com`)
+- **Interval:** every 5 minutes
+- **Alert email:** Polly's
+
+This does two jobs at once:
+
+1. **Keeps Supabase awake.** Regular traffic means the project never hits the
+   inactivity threshold, so it never pauses.
+2. **Tells her if the shop goes down**, rather than her finding out from a
+   customer who couldn't order.
+
+Add Jack's email as a second alert contact while he's still supporting it.
+
+### If it ever does pause
+
+Open the Supabase dashboard and press **Restore** / **Resume**. Data is not
+lost — it comes back exactly as it was, usually within a minute.
+
+### The paid alternative
+
+Supabase Pro ($25/month) removes pausing entirely. Not worth buying up front:
+the uptime monitor solves the same problem for free, and once the shop has
+real customers the traffic keeps it awake on its own.
+
+## 8. After handover
 
 - Polly runs everything day to day: orders, pieces, photos, prices, stock,
   all site wording, section layout, accent colour, logo.
