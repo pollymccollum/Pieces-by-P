@@ -3,7 +3,7 @@ import { getMessagesForOwner } from "@/lib/data";
 import { AdminChrome } from "../AdminChrome";
 import { MessagesBoard } from "./MessagesBoard";
 
-export const metadata = { title: "Messages | Pieces by P admin" };
+export const metadata = { title: "Custom orders | Pieces by P admin" };
 
 export default async function MessagesPage() {
   await requireOwner();

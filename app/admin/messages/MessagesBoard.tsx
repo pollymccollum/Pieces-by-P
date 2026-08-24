@@ -24,10 +24,10 @@ export function MessagesBoard({ messages }: { messages: Message[] }) {
 
   return (
     <>
-      <h1 className="ad-h2">Messages</h1>
+      <h1 className="ad-h2">Custom orders</h1>
       <p className="ad-lead">
-        Enquiries from the contact form on your website. Tick one off once
-        you&apos;ve replied.
+        Requests and questions sent through the contact form on your website.
+        Tick one off once you&apos;ve replied.
       </p>
 
       {messages.length > 0 && (
@@ -48,7 +48,7 @@ export function MessagesBoard({ messages }: { messages: Message[] }) {
       {messages.length === 0 ? (
         <div className="ad-card">
           <div className="ad-empty">
-            No messages yet.
+            No custom order requests yet.
             <br />
             They&apos;ll appear here when someone uses the contact form.
           </div>
