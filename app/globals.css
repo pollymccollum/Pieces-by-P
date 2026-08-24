@@ -944,7 +944,12 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
-  padding: 48px 0;
+  /* Block-only padding on purpose. This element also carries .pp-wrap, and a
+     `padding: 48px 0` shorthand here silently wiped out the wrap's
+     `padding: 0 22px`, leaving the contact text jammed against the window
+     edge while every other section stayed inset. */
+  padding-top: 56px;
+  padding-bottom: 56px;
 }
 .pp-clines {
   font-size: 14px;
@@ -963,7 +968,11 @@ body {
 .pp-footer {
   background: var(--ink);
   color: #d8d2c2;
-  padding: 30px 0;
+  padding-top: 34px;
+  /* Deliberately deeper than the top: floating widgets (host badges, cookie
+     banners, chat bubbles) live in the bottom-right corner and would sit on
+     top of the copyright line. */
+  padding-bottom: 56px;
 }
 .pp-frow {
   display: flex;
@@ -971,6 +980,7 @@ body {
   gap: 18px;
   align-items: center;
   text-align: center;
+  flex-wrap: wrap;
 }
 .pp-fword {
   font-family: var(--serif);
@@ -1057,6 +1067,12 @@ body {
     flex-direction: row;
     justify-content: space-between;
     text-align: left;
+    align-items: center;
+    gap: 18px 28px;
+  }
+  /* Wrap onto its own line rather than being truncated at narrow widths. */
+  .pp-fine {
+    text-align: right;
   }
 }
 @media (min-width: 960px) {
