@@ -87,9 +87,14 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 > `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
 > Supabase project created and all SQL run and verified; Polly's admin
 > login created; Stripe account created and identity-verified.
-> **Site is LIVE at https://piecesbyp.netlify.app** (public, serving her
-> database, admin gated). Next: Stripe webhook, Resend, then DNS at Wix
-> to point piecesbyp.com at it.
+> **LIVE at https://piecesbyp.com** — HTTPS (Let's Encrypt), www redirects
+> to the apex, serving her database, admin gated at /admin.
+> DNS stays at Wix: A `@` -> 75.2.60.5, CNAME `www` -> piecesbyp.netlify.app.
+>
+> Outstanding: (1) NEXT_PUBLIC_SITE_URL still points at the netlify.app
+> address, (2) Stripe webhook not created — card payments do not record,
+> (3) email undecided — Wix DNS cannot do the subdomain MX Resend needs,
+> so either switch to SendGrid (CNAME-only) or move DNS off Wix.
 
 **Start early — these have waiting periods**
 
@@ -114,7 +119,7 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 9. [ ] ⏳ Verify the domain in Resend (2 DNS records; propagation can take hours)
 10. [x] Polly creates Netlify account
 11. [x] Jack deploys, sets all environment variables in Netlify
-12. [ ] Point the domain at Netlify
+12. [x] Point the domain at Netlify
 
 **Polly's content — the longest job, can start as soon as step 11 is done**
 
