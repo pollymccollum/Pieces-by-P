@@ -110,10 +110,12 @@ export function BrandMark({
   brand,
   logoUrl,
   logoHeight,
+  brandFont,
 }: {
   brand: string;
   logoUrl: string | null;
   logoHeight: number;
+  brandFont?: React.CSSProperties;
 }) {
   if (logoUrl) {
     return (
@@ -124,7 +126,9 @@ export function BrandMark({
   return (
     <>
       <Badge />
-      <span className="pp-word">{brand}</span>
+      <span className="pp-word" style={brandFont}>
+        {brand}
+      </span>
     </>
   );
 }

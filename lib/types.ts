@@ -1,3 +1,5 @@
+import type { FontChoices } from "@/lib/fonts";
+
 // Types mirroring supabase/schema.sql. Keep in sync with the database.
 
 export type ProductImage = {
@@ -223,6 +225,9 @@ export type SiteSettingsData = {
   // A logo usually already contains the shop name, so it replaces both.
   logoUrl: string | null;
   logoHeight: number; // px tall in the header; width scales to match
+  // Per-field font overrides chosen in the site editor. Absent or
+  // 'inherit' means the field keeps the design's own font.
+  fonts: FontChoices;
   photoShape: PhotoShape;
   photoFit: PhotoFit;
   gridSize: GridSize;

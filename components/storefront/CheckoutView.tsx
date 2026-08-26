@@ -26,6 +26,7 @@ export function CheckoutView({
   brand,
   logoUrl,
   logoHeight,
+  brandFont,
   lines,
   subtotalCents,
   shipCents,
@@ -38,6 +39,7 @@ export function CheckoutView({
   brand: string;
   logoUrl: string | null;
   logoHeight: number;
+  brandFont?: React.CSSProperties;
   lines: CartLine[];
   subtotalCents: number;
   shipCents: number;
@@ -122,7 +124,7 @@ export function CheckoutView({
       <header className="pp-header">
         <div className="pp-wrap pp-headrow">
           <button className="pp-brand" onClick={onBack}>
-            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} />
+            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
           </button>
           <button className="pp-navlink" onClick={onBack}>
             ← Back to cart

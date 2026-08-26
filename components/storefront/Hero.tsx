@@ -1,22 +1,36 @@
 "use client";
 
 import type { HeroContent } from "@/lib/types";
+import { fontStyle, type FontChoices } from "@/lib/fonts";
 import { StrandArt } from "./visuals";
 
-export function Hero({ hero, heroImageUrl }: { hero: HeroContent; heroImageUrl: string | null }) {
+export function Hero({
+  hero,
+  heroImageUrl,
+  fonts,
+}: {
+  hero: HeroContent;
+  heroImageUrl: string | null;
+  fonts: FontChoices;
+}) {
   return (
     <section className="pp-hero">
       <div className="pp-hero-copy">
         <span className="pp-hero-eye">
-          {hero.eyebrow} <span className="pp-script">{hero.eyebrowScript}</span>
+          <span style={fontStyle(fonts, "heroEyebrow")}>{hero.eyebrow}</span>{" "}
+          <span className="pp-script" style={fontStyle(fonts, "heroEyebrowScript")}>
+            {hero.eyebrowScript}
+          </span>
         </span>
         <h1 className="pp-h1">
-          {hero.title}
-          <span className="pp-script">{hero.titleScript}</span>
+          <span style={fontStyle(fonts, "heroTitle")}>{hero.title}</span>
+          <span className="pp-script" style={fontStyle(fonts, "heroTitleScript")}>
+            {hero.titleScript}
+          </span>
         </h1>
-        <p className="pp-lede">{hero.lede}</p>
+        <p className="pp-lede" style={fontStyle(fonts, "heroLede")}>{hero.lede}</p>
         <div>
-          <button className="pp-btn" onClick={() => document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })}>
+          <button className="pp-btn" style={fontStyle(fonts, "heroCta")} onClick={() => document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })}>
             {hero.cta}
           </button>
         </div>

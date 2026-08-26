@@ -6,6 +6,7 @@ export function Header({
   brand,
   logoUrl,
   logoHeight,
+  brandFont,
   cartCount,
   links,
   onOpenCart,
@@ -13,6 +14,7 @@ export function Header({
   brand: string;
   logoUrl: string | null;
   logoHeight: number;
+  brandFont?: React.CSSProperties;
   cartCount: number;
   links: { id: string; label: string }[];
   onOpenCart: () => void;
@@ -23,7 +25,7 @@ export function Header({
     <header className="pp-header">
       <div className="pp-wrap pp-headrow">
         <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} />
+          <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
         </button>
         <nav className="pp-nav">
           {links.map((l) => (

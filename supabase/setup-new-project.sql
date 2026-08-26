@@ -282,9 +282,10 @@ create policy "owner delete photos"
 -- ============================================================
 -- PIECES BY P  |  Layout settings
 -- Run once per Supabase project, after schema.sql.
--- Adds the section show/hide + ordering controls, the accent colour
--- preset, and the header logo settings to the site_settings row, so
--- the admin's site editor has something to read and write.
+-- Adds the section show/hide + ordering controls, per-field font choices,
+-- the accent colour preset, and the header logo settings to the
+-- site_settings row, so the admin's site editor has something to read
+-- and write.
 --
 -- Uses || so it only fills in what's missing and never clobbers
 -- wording Polly has already edited. Safe to re-run.
@@ -293,6 +294,7 @@ create policy "owner delete photos"
 update site_settings
 set data = jsonb_build_object(
   'accent', 'coral',
+  'fonts', '{}'::jsonb,
   'logoUrl', null,
   'logoHeight', 40,
   'photoShape', 'square',

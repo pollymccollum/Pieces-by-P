@@ -24,6 +24,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   heroImageUrl: null,
   logoUrl: null,
   logoHeight: 40,
+  fonts: {},
   photoShape: "square",
   photoFit: "cover",
   gridSize: "medium",

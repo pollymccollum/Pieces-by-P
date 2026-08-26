@@ -21,6 +21,7 @@ import { ShopGrid } from "./ShopGrid";
 import { ProductModal } from "./ProductModal";
 import { CartDrawer } from "./CartDrawer";
 import { CheckoutView } from "./CheckoutView";
+import { fontStyle } from "@/lib/fonts";
 import { OrderConfirmation } from "./OrderConfirmation";
 import type { PlacedOrder } from "@/app/actions/place-order";
 import type { ShippingInput } from "@/lib/order-utils";
@@ -172,6 +173,7 @@ export function Storefront({
           brand={settings.brand}
           logoUrl={settings.logoUrl}
           logoHeight={settings.logoHeight}
+          brandFont={fontStyle(settings.fonts, "brand")}
           lines={cartLines}
           subtotalCents={subtotalCents}
           shipCents={shipCents}
@@ -191,7 +193,9 @@ export function Storefront({
   }
 
   const sectionNode: Record<SectionId, React.ReactNode> = {
-    hero: <Hero key="hero" hero={settings.hero} heroImageUrl={settings.heroImageUrl} />,
+    hero: (
+      <Hero key="hero" hero={settings.hero} heroImageUrl={settings.heroImageUrl} fonts={settings.fonts} />
+    ),
     shop: (
       <ShopGrid
         key="shop"
@@ -202,8 +206,8 @@ export function Storefront({
         onSelectProduct={(id) => setActiveId(id)}
       />
     ),
-    about: <AboutSection key="about" about={settings.about} />,
-    contact: <ContactSection key="contact" contact={settings.contact} />,
+    about: <AboutSection key="about" about={settings.about} fonts={settings.fonts} />,
+    contact: <ContactSection key="contact" contact={settings.contact} fonts={settings.fonts} />,
   };
 
   const visible = sections.filter((s) => s.show);
@@ -221,12 +225,15 @@ export function Storefront({
 
   return (
     <div className="pp-root" style={rootStyle}>
-      <div className="pp-announce">{settings.announce}</div>
+      <div className="pp-announce" style={fontStyle(settings.fonts, "announce")}>
+        {settings.announce}
+      </div>
 
       <Header
         brand={settings.brand}
         logoUrl={settings.logoUrl}
         logoHeight={settings.logoHeight}
+        brandFont={fontStyle(settings.fonts, "brand")}
         cartCount={cartCount}
         links={navLinks}
         onOpenCart={() => setCartOpen(true)}

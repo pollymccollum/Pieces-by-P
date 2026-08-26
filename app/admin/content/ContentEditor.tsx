@@ -16,6 +16,8 @@ import {
   type SiteSettingsData,
 } from "@/lib/types";
 import { saveSettings, uploadHeroPhoto, uploadLogo } from "../actions";
+import { FontPicker } from "./FontPicker";
+import type { FontKey, FontSlot } from "@/lib/fonts";
 
 const SECTION_LABELS: Record<SectionId, string> = {
   hero: "Hero banner",
@@ -47,6 +49,10 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
       else setError(res.error);
     });
   };
+
+  // Per-field font override. Stored under settings.fonts keyed by slot.
+  const setFont = (slot: FontSlot, key: FontKey) =>
+    patch({ fonts: { ...(s.fonts ?? {}), [slot]: key } });
 
   const moveSection = (index: number, dir: -1 | 1) => {
     const j = index + dir;
@@ -104,10 +110,12 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         <div className="ad-field">
           <span className="ad-lbl">Shop name</span>
           <input className="pp-input" value={s.brand} onChange={(e) => patch({ brand: e.target.value })} />
+          <FontPicker slot="brand" value={s.fonts?.brand} onChange={setFont} />
         </div>
         <div className="ad-field" style={{ marginTop: 12 }}>
           <span className="ad-lbl">Announcement bar</span>
           <input className="pp-input" value={s.announce} onChange={(e) => patch({ announce: e.target.value })} />
+          <FontPicker slot="announce" value={s.fonts?.announce} onChange={setFont} />
           <span className="ad-help">The thin green strip across the very top.</span>
         </div>
 
@@ -232,27 +240,33 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           <div className="ad-field">
             <span className="ad-lbl">Small line above</span>
             <input className="pp-input" value={s.hero.eyebrow} onChange={(e) => patch({ hero: { ...s.hero, eyebrow: e.target.value } })} />
+          <FontPicker slot="heroEyebrow" value={s.fonts?.heroEyebrow} onChange={setFont} />
           </div>
           <div className="ad-field">
             <span className="ad-lbl">…in handwriting</span>
             <input className="pp-input" value={s.hero.eyebrowScript} onChange={(e) => patch({ hero: { ...s.hero, eyebrowScript: e.target.value } })} />
+          <FontPicker slot="heroEyebrowScript" value={s.fonts?.heroEyebrowScript} onChange={setFont} />
           </div>
           <div className="ad-field">
             <span className="ad-lbl">Big headline</span>
             <input className="pp-input" value={s.hero.title} onChange={(e) => patch({ hero: { ...s.hero, title: e.target.value } })} />
+          <FontPicker slot="heroTitle" value={s.fonts?.heroTitle} onChange={setFont} />
           </div>
           <div className="ad-field">
             <span className="ad-lbl">…in handwriting</span>
             <input className="pp-input" value={s.hero.titleScript} onChange={(e) => patch({ hero: { ...s.hero, titleScript: e.target.value } })} />
+          <FontPicker slot="heroTitleScript" value={s.fonts?.heroTitleScript} onChange={setFont} />
           </div>
         </div>
         <div className="ad-field" style={{ marginTop: 12 }}>
           <span className="ad-lbl">Intro paragraph</span>
           <textarea className="pp-textarea" value={s.hero.lede} onChange={(e) => patch({ hero: { ...s.hero, lede: e.target.value } })} />
+          <FontPicker slot="heroLede" value={s.fonts?.heroLede} onChange={setFont} />
         </div>
         <div className="ad-field" style={{ marginTop: 12 }}>
           <span className="ad-lbl">Button text</span>
           <input className="pp-input" value={s.hero.cta} onChange={(e) => patch({ hero: { ...s.hero, cta: e.target.value } })} />
+          <FontPicker slot="heroCta" value={s.fonts?.heroCta} onChange={setFont} />
         </div>
 
         <div className="ad-field" style={{ marginTop: 12 }}>
@@ -293,15 +307,18 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           <div className="ad-field">
             <span className="ad-lbl">Handwritten label</span>
             <input className="pp-input" value={s.about.eyebrowScript} onChange={(e) => patch({ about: { ...s.about, eyebrowScript: e.target.value } })} />
+          <FontPicker slot="aboutEyebrowScript" value={s.fonts?.aboutEyebrowScript} onChange={setFont} />
           </div>
           <div className="ad-field">
             <span className="ad-lbl">Heading</span>
             <input className="pp-input" value={s.about.title} onChange={(e) => patch({ about: { ...s.about, title: e.target.value } })} />
+          <FontPicker slot="aboutTitle" value={s.fonts?.aboutTitle} onChange={setFont} />
           </div>
         </div>
         <div className="ad-field" style={{ marginTop: 12 }}>
           <span className="ad-lbl">Your story</span>
           <textarea className="pp-textarea" style={{ minHeight: 110 }} value={s.about.body} onChange={(e) => patch({ about: { ...s.about, body: e.target.value } })} />
+          <FontPicker slot="aboutBody" value={s.fonts?.aboutBody} onChange={setFont} />
         </div>
       </div>
 
@@ -311,6 +328,7 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         <div className="ad-field">
           <span className="ad-lbl">Heading</span>
           <input className="pp-input" value={s.contact.heading} onChange={(e) => patch({ contact: { ...s.contact, heading: e.target.value } })} />
+          <FontPicker slot="contactHeading" value={s.fonts?.contactHeading} onChange={setFont} />
         </div>
         <div className="ad-grid2" style={{ marginTop: 12 }}>
           {(
