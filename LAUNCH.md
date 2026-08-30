@@ -298,11 +298,22 @@ it was sent. Either set up that mailbox, or say the word and the customer
 emails can carry a Reply-To pointing at an inbox she actually reads.
 (The owner-facing emails already reply straight to the customer.)
 
-**E. Check it actually sends**
+**E. Check it actually sends — locally, before any deploy**
 
-10. Place a test order and confirm the confirmation email arrives. Check the
-   spam folder too: a brand-new sending domain has no reputation yet, and a
-   first email sometimes lands there before settling down.
+The emails don't need the live site to test. Brevo sends from wherever the
+code runs, so the whole flow can be proved on a laptop and only then shipped.
+
+10. Put the same two values in `.env.local`, then `npm run dev`.
+11. `npm run check:supabase` — it names the send-from address once both are set.
+12. Place a test order at `localhost:3000` and confirm the confirmation
+    arrives. Then the custom-order form (sender gets a receipt, Polly gets
+    an alert), and **Send reminder** on an unpaid Venmo order.
+13. Check the spam folder too. A brand-new sending domain has no reputation
+    yet, and the first few sometimes land there before settling down.
+14. Only once that all works, do the same on the live site after a deploy.
+
+For the password reset to work locally, `http://localhost:3000/admin/auth/callback`
+also has to be in Supabase's Redirect URLs alongside the production one.
 
 ---
 
