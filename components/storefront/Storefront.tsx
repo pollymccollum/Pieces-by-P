@@ -251,8 +251,10 @@ export function Storefront({
           {sectionNode[s.id]}
           {/* The bead rule sits between the grid and whatever follows it. */}
           {s.id === "shop" && i < visible.length - 1 && (
-            <div className="pp-wrap">
-              <BeadDivider />
+            <div className="pp-dividerband">
+              <div className="pp-wrap">
+                <BeadDivider />
+              </div>
             </div>
           )}
         </div>

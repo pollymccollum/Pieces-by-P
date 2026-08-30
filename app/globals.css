@@ -455,9 +455,16 @@ body {
 .pp-section {
   padding: 54px 0;
 }
-/* The collection band. Scoped to #shop rather than .pp-section, which
-   About also uses. */
-#shop.pp-section {
+/* The collection band. .pp-section is used by exactly two sections — the
+   shop grid and About — and the owner wants both on this colour, so the
+   two read as one continuous band down the page. */
+.pp-section {
+  background: var(--collection);
+}
+/* The bead rule sits between those two sections, outside either of them.
+   Without this it renders as a stripe of page background cutting the band
+   in half, which reads as a bug rather than a divider. */
+.pp-dividerband {
   background: var(--collection);
 }
 .pp-eyebrow-c {
