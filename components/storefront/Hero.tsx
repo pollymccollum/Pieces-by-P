@@ -22,6 +22,14 @@ export function Hero({
       className={`pp-hero layout-${heroLayout}`}
       style={{ ["--hero-fit" as string]: heroFit }}
     >
+      {heroLayout === "image" ? (
+        /* Image-only: no visible hero text. The headline stays in the DOM,
+           visually hidden — a page with no h1 reads as untitled to search
+           engines and announces nothing to a screen reader. */
+        <h1 className="pp-visually-hidden">
+          {hero.title} {hero.titleScript}
+        </h1>
+      ) : (
       <div className="pp-hero-copy">
         <span className="pp-hero-eye">
           <span style={fontStyle(fonts, "heroEyebrow")}>{hero.eyebrow}</span>{" "}
@@ -42,6 +50,7 @@ export function Hero({
           </button>
         </div>
       </div>
+      )}
       <div className={`pp-hero-art ${heroImageUrl ? "haspic" : ""}`}>
         {heroImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

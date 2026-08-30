@@ -196,6 +196,10 @@ export type GridSize = keyof typeof GRID_SIZES;
 // How the hero image sits against the hero text. A collage wants width —
 // squeezed into the side panel its individual pieces get too small to read.
 export const HERO_LAYOUTS = {
+  image: {
+    label: "Just the collage",
+    help: "No hero text at all — the collage leads straight into the collection.",
+  },
   top: {
     label: "Full width, above the text",
     help: "The image is the first thing on the page. Best for a collage.",
