@@ -3,12 +3,11 @@ import {
   Fraunces,
   Poppins,
   Dancing_Script,
-  Playfair_Display,
-  Lora,
-  Montserrat,
+  Bodoni_Moda,
   Cormorant_Garamond,
-  Caveat,
-  Bebas_Neue,
+  Marcellus,
+  Archivo_Black,
+  Pinyon_Script,
 } from "next/font/google";
 import "./globals.css";
 import { getSiteSettings } from "@/lib/data";
@@ -36,23 +35,22 @@ const dancingScript = Dancing_Script({
 // her admin. A hardcoded description silently goes stale the moment she edits
 // her details — and search engines would keep showing the old town.
 
-// Optional families the owner can pick per field in the site editor.
-// Weights are kept to the minimum each face actually needs — every one of
-// these is downloaded by visitors, so the list is a page-weight budget.
-const playfair = Playfair_Display({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-playfair" });
-const lora = Lora({ subsets: ["latin"], weight: ["400"], variable: "--font-lora" });
-const montserrat = Montserrat({ subsets: ["latin"], weight: ["300", "400"], variable: "--font-montserrat" });
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-cormorant" });
-const caveat = Caveat({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-caveat" });
-const bebas = Bebas_Neue({ subsets: ["latin"], weight: ["400"], variable: "--font-bebas" });
+// The five faces the owner can pick per field in the site editor. Each is
+// the closest free stand-in for one of the commercial Canva fonts in her
+// design, which cannot be embedded on a website under Canva's licence.
+// Weights are minimal — every one of these is downloaded by visitors.
+const bodoni = Bodoni_Moda({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-bodoni" });
+const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["300", "400"], variable: "--font-cormorant" });
+const marcellus = Marcellus({ subsets: ["latin"], weight: ["400"], variable: "--font-marcellus" });
+const archivo = Archivo_Black({ subsets: ["latin"], weight: ["400"], variable: "--font-archivo" });
+const pinyon = Pinyon_Script({ subsets: ["latin"], weight: ["400"], variable: "--font-pinyon" });
 
 const FONT_VARS = [
-  playfair.variable,
-  lora.variable,
-  montserrat.variable,
+  bodoni.variable,
   cormorant.variable,
-  caveat.variable,
-  bebas.variable,
+  marcellus.variable,
+  archivo.variable,
+  pinyon.variable,
 ].join(" ");
 
 export async function generateMetadata(): Promise<Metadata> {

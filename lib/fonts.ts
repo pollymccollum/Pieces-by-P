@@ -13,15 +13,11 @@ export const FONT_INHERIT = "inherit";
 
 export type FontKey =
   | typeof FONT_INHERIT
-  | "serif"
-  | "sans"
-  | "script"
-  | "playfair"
-  | "lora"
-  | "montserrat"
-  | "cormorant"
-  | "caveat"
-  | "bebas";
+  | "aegean"
+  | "calgary"
+  | "versailles"
+  | "sunborn"
+  | "newicon";
 
 export type FontOption = {
   key: FontKey;
@@ -29,24 +25,46 @@ export type FontOption = {
   // CSS value. Inherit is handled separately (no style applied at all).
   css: string;
   // Grouping in the picker, so she isn't scrolling one flat list.
-  group: "Match the design" | "Serif" | "Sans serif" | "Handwritten" | "Display";
+  group: "Match the design" | "Display serif" | "Elegant caps" | "Bold" | "Script";
 };
 
 export const FONTS: FontOption[] = [
   { key: FONT_INHERIT, label: "Match the design", css: "", group: "Match the design" },
 
-  { key: "serif", label: "Fraunces (the shop's headings)", css: "var(--font-fraunces), Georgia, serif", group: "Serif" },
-  { key: "playfair", label: "Playfair Display", css: "var(--font-playfair), Georgia, serif", group: "Serif" },
-  { key: "lora", label: "Lora", css: "var(--font-lora), Georgia, serif", group: "Serif" },
-  { key: "cormorant", label: "Cormorant Garamond", css: "var(--font-cormorant), Garamond, serif", group: "Serif" },
-
-  { key: "sans", label: "Poppins (the shop's body text)", css: "var(--font-poppins), system-ui, sans-serif", group: "Sans serif" },
-  { key: "montserrat", label: "Montserrat", css: "var(--font-montserrat), system-ui, sans-serif", group: "Sans serif" },
-
-  { key: "script", label: "Dancing Script (the shop's handwriting)", css: "var(--font-dancing), cursive", group: "Handwritten" },
-  { key: "caveat", label: "Caveat", css: "var(--font-caveat), cursive", group: "Handwritten" },
-
-  { key: "bebas", label: "Bebas Neue", css: "var(--font-bebas), Impact, sans-serif", group: "Display" },
+  // Stand-ins for the owner's chosen Canva faces. Those are commercial
+  // retail typefaces whose Canva licence does not cover embedding on a
+  // website, so each is matched to the closest free Google Font. The label
+  // names both, honestly: the substitute first, her font in brackets.
+  {
+    key: "aegean",
+    label: "Bodoni Moda (like Tan Aegean)",
+    css: "var(--font-bodoni), Didot, Georgia, serif",
+    group: "Display serif",
+  },
+  {
+    key: "calgary",
+    label: "Cormorant Garamond (like Calgary)",
+    css: "var(--font-cormorant), Garamond, serif",
+    group: "Elegant caps",
+  },
+  {
+    key: "versailles",
+    label: "Marcellus (like Versailles)",
+    css: "var(--font-marcellus), Georgia, serif",
+    group: "Elegant caps",
+  },
+  {
+    key: "sunborn",
+    label: "Archivo Black (like Sunborn)",
+    css: "var(--font-archivo), Impact, sans-serif",
+    group: "Bold",
+  },
+  {
+    key: "newicon",
+    label: "Pinyon Script (like New Icon Script)",
+    css: "var(--font-pinyon), cursive",
+    group: "Script",
+  },
 ];
 
 const BY_KEY = new Map(FONTS.map((f) => [f.key, f]));
