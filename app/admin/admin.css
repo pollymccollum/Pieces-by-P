@@ -826,3 +826,20 @@
 .ad-fontreset:hover {
   color: var(--ink);
 }
+
+/* Live preview under a font picker: the field's own words in the chosen
+   face, so candidates can be compared without saving and reloading. */
+.ad-fontblock {
+  margin-top: 6px;
+}
+.ad-fontpreview {
+  margin-top: 6px;
+  padding: 10px 12px;
+  background: var(--cream);
+  border: 1px dashed var(--hair);
+  border-radius: 8px;
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}

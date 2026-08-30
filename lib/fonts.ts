@@ -113,3 +113,28 @@ export function withFont(
   if (!f) return base;
   return { ...base, ...f };
 }
+
+// What the design itself uses for each field. Lets the editor preview
+// "Match the design" accurately instead of guessing, so she can compare a
+// candidate against what's actually on the page right now.
+const DESIGN_FONT: Record<FontSlot, string> = {
+  brand: "var(--font-fraunces), Georgia, serif",
+  announce: "var(--font-poppins), system-ui, sans-serif",
+  heroEyebrow: "var(--font-poppins), system-ui, sans-serif",
+  heroEyebrowScript: "var(--font-dancing), cursive",
+  heroTitle: "var(--font-fraunces), Georgia, serif",
+  heroTitleScript: "var(--font-dancing), cursive",
+  heroLede: "var(--font-poppins), system-ui, sans-serif",
+  heroCta: "var(--font-poppins), system-ui, sans-serif",
+  aboutEyebrowScript: "var(--font-dancing), cursive",
+  aboutTitle: "var(--font-fraunces), Georgia, serif",
+  aboutBody: "var(--font-poppins), system-ui, sans-serif",
+  contactHeading: "var(--font-fraunces), Georgia, serif",
+};
+
+
+// Font CSS for one option, for rendering the dropdown entries in their own face.
+export function fontCssFor(key: FontKey, slot: FontSlot): string {
+  if (key === FONT_INHERIT) return DESIGN_FONT[slot];
+  return BY_KEY.get(key)?.css ?? DESIGN_FONT[slot];
+}
