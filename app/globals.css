@@ -294,8 +294,26 @@ body {
   background: linear-gradient(180deg, var(--cream), var(--cream2));
 }
 /* ---- hero layouts ----
-   'side' is the original two-column design and needs no rules.
-   Both full-width options exist because a collage squeezed into the side
+   'top' puts the image first: a full-bleed rectangle above the words, so
+   it is the first thing a visitor sees. CSS order does the swap, keeping
+   the markup (and its reading order) unchanged. */
+.pp-hero.layout-top .pp-hero-art {
+  order: -1;
+  padding: 0;
+  min-height: var(--hero-h-sm, 270px);
+}
+.pp-hero.layout-top .pp-hero-art .pp-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.pp-hero.layout-top .pp-hero-copy {
+  padding-top: 40px;
+}
+
+/* 'side' is the original two-column design and needs no rules.
+   The full-width options exist because a collage squeezed into the side
    panel renders each piece too small to see. */
 .pp-hero.layout-band .pp-hero-art {
   padding: 0 22px 44px;
@@ -1120,9 +1138,13 @@ body {
   .pp-hero {
     grid-template-columns: 1.05fr 0.95fr;
   }
+  .pp-hero.layout-top,
   .pp-hero.layout-band,
   .pp-hero.layout-background {
     grid-template-columns: 1fr;
+  }
+  .pp-hero.layout-top .pp-hero-art {
+    min-height: var(--hero-h-lg, 340px);
   }
   .pp-hero.layout-background .pp-hero-copy {
     min-height: var(--hero-h-lg, 340px);
