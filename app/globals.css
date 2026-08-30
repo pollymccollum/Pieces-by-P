@@ -293,6 +293,53 @@ body {
   border-bottom: 1px solid var(--hair);
   background: linear-gradient(180deg, var(--cream), var(--cream2));
 }
+/* ---- hero layouts ----
+   'side' is the original two-column design and needs no rules.
+   Both full-width options exist because a collage squeezed into the side
+   panel renders each piece too small to see. */
+.pp-hero.layout-band .pp-hero-art {
+  padding: 0 22px 44px;
+}
+.pp-hero.layout-band .pp-hero-art .pp-photo {
+  position: relative;
+  inset: auto;
+  max-height: var(--hero-h-lg, 340px);
+  margin: 0 auto;
+  width: auto;
+  max-width: min(1180px, 100%);
+}
+.pp-hero.layout-band .pp-hero-copy {
+  padding-bottom: 26px;
+}
+
+/* Text over the image. A scrim keeps the words readable on a busy collage —
+   without it, light type on a pale photo is unreadable. */
+.pp-hero.layout-background {
+  position: relative;
+}
+.pp-hero.layout-background .pp-hero-art {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  min-height: 0;
+}
+.pp-hero.layout-background .pp-hero-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(250, 246, 236, 0.94) 0%,
+    rgba(250, 246, 236, 0.82) 45%,
+    rgba(250, 246, 236, 0.35) 100%
+  );
+}
+.pp-hero.layout-background .pp-hero-copy {
+  position: relative;
+  z-index: 1;
+  min-height: var(--hero-h-sm, 270px);
+}
+
 .pp-hero-copy {
   padding: 52px 22px 44px;
   display: flex;
@@ -342,6 +389,8 @@ body {
 .pp-hero-art .pp-photo {
   position: absolute;
   inset: 0;
+  /* A collage must not be cropped — 'contain' shows all of it. */
+  object-fit: var(--hero-fit, cover);
 }
 .pp-tag-note {
   position: absolute;
@@ -1070,6 +1119,13 @@ body {
   }
   .pp-hero {
     grid-template-columns: 1.05fr 0.95fr;
+  }
+  .pp-hero.layout-band,
+  .pp-hero.layout-background {
+    grid-template-columns: 1fr;
+  }
+  .pp-hero.layout-background .pp-hero-copy {
+    min-height: var(--hero-h-lg, 340px);
   }
   .pp-hero-copy {
     padding: 66px 42px;

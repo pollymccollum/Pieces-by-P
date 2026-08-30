@@ -301,6 +301,8 @@ set data = jsonb_build_object(
   'photoFit', 'cover',
   'gridSize', 'medium',
   'heroSize', 'medium',
+  'heroLayout', 'side',
+  'heroFit', 'cover',
   'sections', jsonb_build_array(
     jsonb_build_object('id', 'hero',    'show', true),
     jsonb_build_object('id', 'shop',    'show', true),

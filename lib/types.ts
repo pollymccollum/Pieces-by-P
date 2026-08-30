@@ -193,6 +193,24 @@ export const GRID_SIZES = {
 } as const;
 export type GridSize = keyof typeof GRID_SIZES;
 
+// How the hero image sits against the hero text. A collage wants width —
+// squeezed into the side panel its individual pieces get too small to read.
+export const HERO_LAYOUTS = {
+  side: {
+    label: "Beside the text",
+    help: "The original design. Good for one strong photo.",
+  },
+  band: {
+    label: "Full width, under the text",
+    help: "Best for a collage — it gets the whole width.",
+  },
+  background: {
+    label: "Full width, text on top",
+    help: "Boldest. Needs an image that isn't busy behind the words.",
+  },
+} as const;
+export type HeroLayout = keyof typeof HERO_LAYOUTS;
+
 // Hero banner height, phone / desktop.
 export const HERO_SIZES = {
   short: { label: "Short", heights: ["200px", "260px"] },
@@ -232,6 +250,10 @@ export type SiteSettingsData = {
   photoFit: PhotoFit;
   gridSize: GridSize;
   heroSize: HeroSize;
+  heroLayout: HeroLayout;
+  // 'contain' shows the whole image — what a collage needs. 'cover' fills
+  // the frame and crops, which suits a single photo.
+  heroFit: PhotoFit;
   accent: AccentKey;
   sections: SectionSetting[];
   hero: HeroContent;

@@ -29,6 +29,8 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   photoFit: "cover",
   gridSize: "medium",
   heroSize: "medium",
+  heroLayout: "side",
+  heroFit: "cover",
   accent: "coral",
   sections: [
     { id: "hero", show: true },

@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import {
   ACCENTS,
   GRID_SIZES,
+  HERO_LAYOUTS,
   HERO_SIZES,
   PHOTO_FITS,
   PHOTO_SHAPES,
   type AccentKey,
   type GridSize,
+  type HeroLayout,
   type HeroSize,
   type PhotoFit,
   type PhotoShape,
@@ -296,7 +298,49 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
               />
             </label>
           </div>
-          <span className="ad-help">No photo shows the beaded illustration instead.</span>
+          <span className="ad-help">
+            Export from Canva as <b>PNG</b> or JPG — not PDF. A PDF is a document,
+            not an image, and browsers can&apos;t show one inside a page.
+            No image shows the beaded illustration instead.
+          </span>
+
+          <div style={{ marginTop: 16 }}>
+            <span className="ad-lbl">How it sits on the page</span>
+            <div className="ad-optrow">
+              {(Object.keys(HERO_LAYOUTS) as HeroLayout[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`ad-opt wide ${s.heroLayout === key ? "on" : ""}`}
+                  onClick={() => patch({ heroLayout: key })}
+                >
+                  <strong style={{ fontWeight: 400 }}>{HERO_LAYOUTS[key].label}</strong>
+                  <span className="ad-opt-help">{HERO_LAYOUTS[key].help}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <span className="ad-lbl">If the image isn&apos;t the right shape</span>
+            <div className="ad-optrow">
+              {(Object.keys(PHOTO_FITS) as PhotoFit[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`ad-opt wide ${s.heroFit === key ? "on" : ""}`}
+                  onClick={() => patch({ heroFit: key })}
+                >
+                  <strong style={{ fontWeight: 400 }}>{PHOTO_FITS[key].label}</strong>
+                  <span className="ad-opt-help">{PHOTO_FITS[key].help}</span>
+                </button>
+              ))}
+            </div>
+            <span className="ad-help" style={{ marginTop: 6 }}>
+              A collage needs <b>Show the whole photo</b> — otherwise the edges get
+              cut off and pieces disappear.
+            </span>
+          </div>
         </div>
       </div>
 

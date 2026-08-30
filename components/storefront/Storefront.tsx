@@ -194,7 +194,14 @@ export function Storefront({
 
   const sectionNode: Record<SectionId, React.ReactNode> = {
     hero: (
-      <Hero key="hero" hero={settings.hero} heroImageUrl={settings.heroImageUrl} fonts={settings.fonts} />
+      <Hero
+        key="hero"
+        hero={settings.hero}
+        heroImageUrl={settings.heroImageUrl}
+        heroLayout={settings.heroLayout}
+        heroFit={settings.heroFit}
+        fonts={settings.fonts}
+      />
     ),
     shop: (
       <ShopGrid

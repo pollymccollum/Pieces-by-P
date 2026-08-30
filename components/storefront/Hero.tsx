@@ -1,20 +1,27 @@
 "use client";
 
-import type { HeroContent } from "@/lib/types";
+import type { HeroContent, HeroLayout, PhotoFit } from "@/lib/types";
 import { fontStyle, type FontChoices } from "@/lib/fonts";
 import { StrandArt } from "./visuals";
 
 export function Hero({
   hero,
   heroImageUrl,
+  heroLayout,
+  heroFit,
   fonts,
 }: {
   hero: HeroContent;
   heroImageUrl: string | null;
+  heroLayout: HeroLayout;
+  heroFit: PhotoFit;
   fonts: FontChoices;
 }) {
   return (
-    <section className="pp-hero">
+    <section
+      className={`pp-hero layout-${heroLayout}`}
+      style={{ ["--hero-fit" as string]: heroFit }}
+    >
       <div className="pp-hero-copy">
         <span className="pp-hero-eye">
           <span style={fontStyle(fonts, "heroEyebrow")}>{hero.eyebrow}</span>{" "}
@@ -47,7 +54,7 @@ export function Hero({
             size={230}
           />
         )}
-        {!heroImageUrl && <span className="pp-tag-note">Editorial photo goes here</span>}
+        {!heroImageUrl && <span className="pp-tag-note">Your photo or collage goes here</span>}
       </div>
     </section>
   );
