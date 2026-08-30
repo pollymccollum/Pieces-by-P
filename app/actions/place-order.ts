@@ -1,6 +1,7 @@
 "use server";
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient, isServiceRoleConfigured } from "@/lib/supabase/service";
 import { getProducts, getSiteSettings } from "@/lib/data";
 import { formatAddress, sendNewOrderEmails } from "@/lib/email";
 import {
@@ -13,6 +14,7 @@ import {
   type CartInput,
   type ShippingInput,
 } from "@/lib/order-utils";
+import { isRateLimited, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 export type PlacedOrder = {
   orderNumber: string;
@@ -45,6 +47,10 @@ export async function placeVenmoOrder(
   const invalid = validateShipping(ship);
   if (invalid) return { ok: false, error: invalid };
 
+  if (await isRateLimited("orders", ship.email)) {
+    return { ok: false, error: RATE_LIMIT_MESSAGE };
+  }
+
   const [products, settings] = await Promise.all([getProducts(), getSiteSettings()]);
 
   const priced = priceOrder(cart, products, settings);
@@ -54,17 +60,26 @@ export async function placeVenmoOrder(
   const supabase = getSupabaseServerClient();
   const reservation = stockPayload(lines);
 
+  // Stock changes go through the service-role client. The stock functions
+  // are SECURITY DEFINER and deliberately NOT executable by anon, or any
+  // visitor could call them directly and mark the shop sold out.
+  if (!isServiceRoleConfigured()) {
+    console.error('[order] SUPABASE_SERVICE_ROLE_KEY missing — cannot reserve stock');
+    return { ok: false, error: "We couldn't complete that just now. Please try again shortly." };
+  }
+  const stockDb = getSupabaseServiceClient();
+
   // Reserve stock BEFORE creating the order, so a piece can't be sold twice.
   // This is one atomic statement per line inside the database — the check and
   // the decrement can't be interleaved by another shopper.
-  const { error: reserveErr } = await supabase.rpc("reserve_stock", { items: reservation });
+  const { error: reserveErr } = await stockDb.rpc("reserve_stock", { items: reservation });
   if (reserveErr) {
     return { ok: false, error: stockErrorMessage(reserveErr.message, products) };
   }
 
   // From here on, any failure must hand the stock back.
   const release = async () => {
-    await supabase.rpc("release_stock", { items: reservation });
+    await stockDb.rpc("release_stock", { items: reservation });
   };
 
   // order_number is unique; retry a couple of times on the rare collision.

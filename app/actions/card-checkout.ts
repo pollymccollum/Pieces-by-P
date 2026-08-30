@@ -1,6 +1,7 @@
 "use server";
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { getSupabaseServiceClient, isServiceRoleConfigured } from "@/lib/supabase/service";
 import { getProducts, getSiteSettings } from "@/lib/data";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
 import {
@@ -13,6 +14,7 @@ import {
   type CartInput,
   type ShippingInput,
 } from "@/lib/order-utils";
+import { isRateLimited, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 export type CardCheckoutResult =
   | { ok: true; url: string }
@@ -44,6 +46,10 @@ export async function startCardCheckout(
   const invalid = validateShipping(ship);
   if (invalid) return { ok: false, error: invalid };
 
+  if (await isRateLimited("orders", ship.email)) {
+    return { ok: false, error: RATE_LIMIT_MESSAGE };
+  }
+
   const [products, settings] = await Promise.all([getProducts(), getSiteSettings()]);
 
   const priced = priceOrder(cart, products, settings);
@@ -53,12 +59,21 @@ export async function startCardCheckout(
   const supabase = getSupabaseServerClient();
   const reservation = stockPayload(lines);
 
-  const { error: reserveErr } = await supabase.rpc("reserve_stock", { items: reservation });
+  // Stock changes go through the service-role client. The stock functions
+  // are SECURITY DEFINER and deliberately NOT executable by anon, or any
+  // visitor could call them directly and mark the shop sold out.
+  if (!isServiceRoleConfigured()) {
+    console.error('[order] SUPABASE_SERVICE_ROLE_KEY missing — cannot reserve stock');
+    return { ok: false, error: "We couldn't complete that just now. Please try again shortly." };
+  }
+  const stockDb = getSupabaseServiceClient();
+
+  const { error: reserveErr } = await stockDb.rpc("reserve_stock", { items: reservation });
   if (reserveErr) {
     return { ok: false, error: stockErrorMessage(reserveErr.message, products) };
   }
   const release = async () => {
-    await supabase.rpc("release_stock", { items: reservation });
+    await stockDb.rpc("release_stock", { items: reservation });
   };
 
   const orderId = crypto.randomUUID();
@@ -142,6 +157,11 @@ export async function startCardCheckout(
       payment_intent_data: {
         metadata: { order_id: orderId, order_number: orderNumber },
       },
+      // Stock is reserved the moment this session is created. Expiring it
+      // after 30 minutes (Stripe's minimum) means an abandoned checkout
+      // returns the pieces quickly instead of holding them for a day.
+      // checkout.session.expired is what releases them — see the webhook.
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       success_url: `${site}/order/success?order=${encodeURIComponent(orderNumber)}`,
       cancel_url: `${site}/order/cancelled?order=${encodeURIComponent(orderNumber)}`,
     });

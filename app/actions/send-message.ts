@@ -3,6 +3,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/data";
 import { notifyOwnerOfMessage } from "@/lib/email";
+import { isRateLimited, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 export type SendMessageResult = { ok: true } | { ok: false; error: string };
 
@@ -22,6 +23,10 @@ export async function sendContactMessage(input: {
     return { ok: false, error: "Please add a valid email address." };
   }
   if (!body) return { ok: false, error: "Please write a message." };
+
+  if (await isRateLimited("messages", email)) {
+    return { ok: false, error: RATE_LIMIT_MESSAGE };
+  }
 
   const supabase = getSupabaseServerClient();
   const { error } = await supabase.from("messages").insert({ name, email, body });

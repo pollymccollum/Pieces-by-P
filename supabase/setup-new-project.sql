@@ -429,10 +429,21 @@ begin
 end;
 $$;
 
-revoke all on function reserve_stock(jsonb) from public;
-revoke all on function release_stock(jsonb) from public;
-grant execute on function reserve_stock(jsonb) to anon, authenticated;
-grant execute on function release_stock(jsonb) to anon, authenticated;
+-- Deliberately NOT granted to anon.
+--
+-- These are SECURITY DEFINER, so whoever may execute them can change stock
+-- on any product. Product ids appear in the page source and the publishable
+-- key is public by design, so granting anon would let any visitor call
+--   POST /rest/v1/rpc/reserve_stock  {"items":[{"product_id":"...","qty":999}]}
+-- and mark the whole shop sold out.
+--
+-- Checkout still works: it runs server-side and calls these with the
+-- service-role key, which never reaches a browser. The owner's admin calls
+-- them as 'authenticated'.
+revoke all on function reserve_stock(jsonb) from public, anon;
+revoke all on function release_stock(jsonb) from public, anon;
+grant execute on function reserve_stock(jsonb) to authenticated, service_role;
+grant execute on function release_stock(jsonb) to authenticated, service_role;
 
 
 -- ==========================================================

@@ -45,6 +45,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid signature" }, { status: 400 });
   }
 
+  // An abandoned checkout: the customer reached Stripe and never paid.
+  // Its stock was reserved when the session was created, so hand it back —
+  // otherwise a few abandoned carts quietly mark real pieces sold out.
+  if (event.type === "checkout.session.expired") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const orderId = session.metadata?.order_id;
+    if (orderId) await releaseStockForOrder(orderId);
+    return NextResponse.json({ received: true });
+  }
+
   if (event.type !== "checkout.session.completed") {
     // Acknowledge anything else so Stripe stops retrying it.
     return NextResponse.json({ received: true });
@@ -135,4 +145,41 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ received: true });
+}
+
+// Returns the stock an abandoned order was holding.
+//
+// Reads the order's own line items rather than the Stripe session, so the
+// quantities put back are exactly the ones taken. Only touches orders still
+// 'pending': a paid order must keep its stock, and Stripe can deliver an
+// expiry event for a session that was completed at the last moment.
+async function releaseStockForOrder(orderId: string): Promise<void> {
+  try {
+    const db = getSupabaseServiceClient();
+
+    const { data: order } = await db
+      .from("orders")
+      .select("id, payment_status")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (!order || order.payment_status !== "pending") return;
+
+    const { data: items } = await db
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", orderId);
+
+    const payload = (items ?? [])
+      .filter((i) => i.product_id)
+      .map((i) => ({ product_id: i.product_id, qty: i.quantity }));
+
+    if (payload.length === 0) return;
+
+    await db.rpc("release_stock", { items: payload });
+    console.log(`[stripe] released stock for abandoned order ${orderId}`);
+  } catch (err) {
+    // Never throw: a failure here must not make Stripe retry forever.
+    console.error("[stripe] could not release stock for", orderId, err);
+  }
 }

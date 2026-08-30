@@ -37,6 +37,9 @@ export type PricedOrder = {
 };
 
 const MAX_QTY_PER_LINE = 50;
+// Quantity per line was capped but the line count wasn't, so a crafted
+// request could contain thousands of items. Far above any real basket.
+const MAX_LINES = 40;
 
 export function newOrderNumber(): string {
   // PBP-XXXXX. Ambiguous characters (0/O, 1/I) are excluded so Polly and her
@@ -88,6 +91,9 @@ export function priceOrder(
 ): { ok: true; order: PricedOrder } | { ok: false; error: string } {
   if (!Array.isArray(cart) || cart.length === 0) {
     return { ok: false, error: "Your cart is empty." };
+  }
+  if (cart.length > MAX_LINES) {
+    return { ok: false, error: "That's too many different pieces in one order." };
   }
 
   const lines: PricedLine[] = [];
