@@ -9,7 +9,7 @@ import {
   type Order,
 } from "@/lib/types";
 import { money } from "@/lib/format";
-import { sendVenmoReminder, setOrderStatus, setPaymentStatus } from "../actions";
+import { deleteOrder, sendVenmoReminder, setOrderStatus, setPaymentStatus } from "../actions";
 
 const FILTERS = ["All", "New", "Making", "Shipped"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -50,6 +50,9 @@ export function OrdersBoard({
   // doesn't flicker while an email is on its way.
   const [remindingId, setRemindingId] = useState<string | null>(null);
   const [remindedId, setRemindedId] = useState<string | null>(null);
+  // Which order is showing its "are you sure?" row. Deleting is one
+  // click away, but never one click total.
+  const [confirmId, setConfirmId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, start] = useTransition();
 
@@ -115,6 +118,17 @@ export function OrdersBoard({
         setError(res.error);
       }
       setRemindingId(null);
+    });
+  };
+
+  const remove = (o: Order) => {
+    setError(null);
+    setBusyId(o.id);
+    start(async () => {
+      const res = await deleteOrder(o.id);
+      if (!res.ok) setError(res.error);
+      setBusyId(null);
+      setConfirmId(null);
     });
   };
 
@@ -399,6 +413,42 @@ export function OrdersBoard({
                 ))}
               </div>
             </div>
+
+            {/* Tidying up. Deliberately the quietest control on the card,
+                and it asks first — an order is the only record of a sale. */}
+            {confirmId === o.id ? (
+              <div className="oa-confirm">
+                <div className="oa-confirm-q">
+                  Delete {o.order_number} for good?
+                  {o.payment_status === "paid" && (
+                    <b> This one is marked paid — you&apos;ll lose your record of the sale.</b>
+                  )}
+                  {o.fulfillment_status !== "shipped" && (
+                    <span> Its pieces go back into stock.</span>
+                  )}
+                </div>
+                <div className="oa-confirm-btns">
+                  <button
+                    className="oa-delete-yes"
+                    disabled={busyId === o.id}
+                    onClick={() => remove(o)}
+                  >
+                    {busyId === o.id ? "Deleting\u2026" : "Yes, delete"}
+                  </button>
+                  <button
+                    className="oa-undo"
+                    disabled={busyId === o.id}
+                    onClick={() => setConfirmId(null)}
+                  >
+                    Keep it
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button className="oa-delete" onClick={() => setConfirmId(o.id)}>
+                Delete order
+              </button>
+            )}
           </div>
         ))
       )}

@@ -54,6 +54,7 @@ In the Supabase dashboard: **SQL Editor → New query**, paste each file, run it
 | [supabase/verify-rls.sql](supabase/verify-rls.sql) | Read-only check that RLS actually applied |
 | [supabase/add-contact-fields.sql](supabase/add-contact-fields.sql) | Migration — only for projects created before Instagram/optional-email |
 | [supabase/add-stock.sql](supabase/add-stock.sql) | Stock column + `reserve_stock`/`release_stock` functions (**required**) |
+| [supabase/add-order-delete.sql](supabase/add-order-delete.sql) | DELETE policy on `orders` so the admin's delete works (**required**) |
 
 Skip both seed files on Polly's real project: she enters her own pieces and
 copy through the admin, and fake orders must never reach a live shop.

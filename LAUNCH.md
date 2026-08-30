@@ -107,14 +107,17 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 
 3. [x] Polly creates a GitHub account; transfer the repo to her, add Jack as collaborator
 4. [x] Polly creates Supabase project (free tier)
-5. [x] Jack runs these five in the Supabase SQL Editor, **in this order**:
-       `schema.sql` → `rls.sql` → `storage.sql` → `layout-settings.sql` → `add-stock.sql`
+5. [x] Jack runs these six in the Supabase SQL Editor, **in this order**:
+       `schema.sql` → `rls.sql` → `storage.sql` → `layout-settings.sql` →
+       `add-stock.sql` → `add-order-delete.sql`
        - **Do not run** `seed.sql` or `seed-orders.sql` — fake pieces and fake
          customers, dev only.
        - **Do not run** `add-contact-fields.sql` — it only patches projects
          made before those columns existed; `schema.sql` already includes them.
        - `add-stock.sql` **is** required despite its name: the stock functions
          checkout depends on live only in that file.
+       - `add-order-delete.sql` lets Polly delete an order from the admin.
+         Skip it and the button reports that the database refused.
 6. [x] Jack runs `verify-rls.sql`, then `npm run check:supabase` — both should come back clean
 7. [x] Polly creates her admin login (Supabase → Authentication → Users)
 8. [ ] Polly creates Brevo account (brevo.com, free tier)
@@ -213,6 +216,7 @@ files contain `drop table` or `delete from`.
 | 3 | `storage.sql` | Photo bucket + upload permissions |
 | 4 | `layout-settings.sql` | Section order, accent colour, logo defaults |
 | 5 | `add-stock.sql` | Stock functions — **required**, see below |
+| 6 | `add-order-delete.sql` | Lets the owner delete an order from the admin |
 
 **Do NOT run:**
 

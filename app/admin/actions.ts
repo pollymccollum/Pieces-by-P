@@ -180,6 +180,88 @@ export async function sendVenmoReminder(orderId: string): Promise<ActionResult> 
   return { ok: true };
 }
 
+// Removes an order and its lines for good.
+//
+// Kept because a real shop accumulates junk — test orders, a manual entry
+// typed twice, an abandoned Venmo that never arrived — and a cluttered
+// board makes the orders that matter harder to see.
+//
+// Two things it gets right that a plain delete wouldn't:
+//
+//   1. Stock. An order took stock when it was placed. If it never shipped,
+//      those pieces are still on the table, so the numbers go back. If it
+//      DID ship, they're genuinely gone and the count stays down.
+//   2. It checks the delete actually happened. Under RLS a delete with no
+//      matching policy removes nothing and reports no error, so trusting
+//      the absence of an error would tell Polly the order was gone while
+//      it sat there. See supabase/add-order-delete.sql.
+export async function deleteOrder(orderId: string): Promise<ActionResult> {
+  await requireOwner();
+
+  const supabase = await getSupabaseAuthClient();
+
+  const { data: order, error: readErr } = await supabase
+    .from("orders")
+    .select("id, fulfillment_status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (readErr) return { ok: false, error: readErr.message };
+  if (!order) return { ok: false, error: "That order no longer exists." };
+
+  // Read the lines before the cascade takes them. product_id is on the
+  // table but not on the Order type the admin renders, so this is a direct
+  // read rather than a reuse of the loaded order.
+  let putBack: { product_id: string; qty: number }[] = [];
+  if (order.fulfillment_status !== "shipped") {
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("product_id, quantity")
+      .eq("order_id", orderId);
+
+    putBack = (items ?? [])
+      .filter((i) => i.product_id)
+      .map((i) => ({ product_id: i.product_id as string, qty: i.quantity as number }));
+  }
+
+  const { data: removed, error } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", orderId)
+    .select("id");
+
+  if (error) return { ok: false, error: error.message };
+
+  if (!removed || removed.length === 0) {
+    return {
+      ok: false,
+      error:
+        "The database refused that delete. Run supabase/add-order-delete.sql on the project, then try again.",
+    };
+  }
+
+  // After the delete, never before: if the delete fails we must not have
+  // already handed the stock back.
+  if (putBack.length > 0) {
+    const { error: stockErr } = await supabase.rpc("release_stock", { items: putBack });
+    // The order is already gone, so this can't be retried. Say so plainly
+    // rather than reporting a clean tidy-up.
+    if (stockErr) {
+      console.error("[admin] order deleted but stock not restored:", orderId, stockErr);
+      revalidatePath("/admin/orders");
+      refresh();
+      return {
+        ok: false,
+        error: "Order deleted, but the stock numbers didn't go back up. Check them on the Pieces tab.",
+      };
+    }
+  }
+
+  revalidatePath("/admin/orders");
+  refresh(); // stock changed, so the storefront needs re-rendering too
+  return { ok: true };
+}
+
 // ── products ────────────────────────────────────────────────
 
 export async function createProduct(): Promise<ActionResult> {
