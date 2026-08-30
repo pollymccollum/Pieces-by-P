@@ -20,6 +20,11 @@
   --pink: #e15e92;
   --blue: #3e9db0;
   --hair: #e7e0cd;
+  /* Owner's chosen palette (Aug 2026). Kept as named roles so a future
+     change is one line here rather than a hunt through the file. */
+  --band: #c3d696; /* announcement bar + contact band */
+  --collection: #f2f0e2; /* the shop grid's background */
+  --btn-deep: #333c2f; /* send message button */
   --serif: var(--font-fraunces), Georgia, serif;
   --script: var(--font-dancing), cursive;
   --sans: var(--font-poppins), system-ui, sans-serif;
@@ -85,8 +90,9 @@ body {
 }
 
 .pp-announce {
-  background: var(--sage-deep);
-  color: #f7f4e8;
+  background: var(--band);
+  /* Dark text: the band is light, so the old near-white would vanish. */
+  color: var(--ink);
   text-align: center;
   padding: 8px 12px;
   font-size: 10.5px;
@@ -352,6 +358,11 @@ body {
 
 .pp-section {
   padding: 54px 0;
+}
+/* The collection band. Scoped to #shop rather than .pp-section, which
+   About also uses. */
+#shop.pp-section {
+  background: var(--collection);
 }
 .pp-eyebrow-c {
   text-align: center;
@@ -937,9 +948,26 @@ body {
 }
 
 .pp-contact {
-  background: var(--sage-soft);
+  background: var(--band);
   border-top: 1px solid var(--hair);
 }
+/* On the pale band, sage-deep small caps fall to roughly 2.8:1 contrast —
+   under the 4.5:1 small text needs. Ink is about 9:1. */
+.pp-contact .pp-eyebrow {
+  color: var(--ink) !important;
+}
+/* The Send message button, in the owner's deep green. Scoped to the
+   contact form: .pp-btn.sage is shared with the admin's Save buttons
+   and the checkout button, which were not part of this change. */
+.pp-cform .pp-btn.sage {
+  background: var(--btn-deep);
+  border-color: var(--btn-deep);
+}
+.pp-cform .pp-btn.sage:hover {
+  background: #262e23;
+  border-color: #262e23;
+}
+
 .pp-contact-grid {
   display: grid;
   grid-template-columns: 1fr;
