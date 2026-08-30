@@ -87,23 +87,16 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 > `github.com/pollymccollum/Pieces-by-P` (private, Jack a collaborator);
 > Supabase project created and all SQL run and verified; Polly's admin
 > login created; Stripe account created and identity-verified.
-> **LIVE at https://piecesbyp.com** — HTTPS (Let's Encrypt), www redirects to
-> the apex, serving her database, admin gated at /admin.
+> **LIVE at https://piecesbyp.com** — HTTPS, www redirects to the apex,
+> serving her database, admin gated at /admin, auto-deploy from GitHub.
 > DNS stays at Wix: A `@` -> 75.2.60.5, CNAME `www` -> piecesbyp.netlify.app.
 >
-> **Still to do:**
-> 1. **Stripe webhook** — not created. Card payments do NOT record: Stripe
->    would take the money and no order would appear in the admin. Endpoint
->    `https://piecesbyp.com/api/stripe/webhook`, event
->    `checkout.session.completed`, then add `STRIPE_WEBHOOK_SECRET` in
->    Netlify and redeploy.
-> 2. **Email** — blocked at Wix: it refuses MX records on subdomains, which
->    Resend requires. Either switch to SendGrid (verifies with CNAMEs, works
->    on Wix) or move DNS off Wix.
-> 3. **Polly's inventory** — shop is still empty. The longest job left.
-> 4. **Smoke test**, then swap Stripe to live keys.
+> **Done:** card payments tested end to end; Stripe webhook live with both
+> `checkout.session.completed` and `checkout.session.expired`; contact form
+> saving to the Custom orders tab; stock tracking; pre-launch security pass
+> (see section 9).
 >
-> **Do not announce the shop until 1 and 4 are done.**
+> **Left:** email provider, Polly's inventory, then go live.
 
 **Start early — these have waiting periods**
 
@@ -158,6 +151,14 @@ accounts and *her* keys.
 **Go live**
 
 20. [ ] Switch Stripe from test keys to live keys
+20b. [ ] ⚠️ **Create the webhook destination AGAIN in LIVE mode.** Test and
+        live are entirely separate in Stripe — the test destination does
+        nothing once live keys are in. Same URL
+        (`https://piecesbyp.com/api/stripe/webhook`), same two events
+        (`checkout.session.completed`, `checkout.session.expired`), then
+        put the **live** signing secret into `STRIPE_WEBHOOK_SECRET` in
+        Netlify and redeploy.
+        Miss this and cards are charged while no order is ever recorded.
 21. [ ] Place one real order with a real card, then refund it from the Stripe dashboard
 22. [ ] Delete Jack's dev accounts: Supabase project, Resend, Stripe test account
 
@@ -430,7 +431,33 @@ Supabase Pro ($25/month) removes pausing entirely. Not worth buying up front:
 the uptime monitor solves the same problem for free, and once the shop has
 real customers the traffic keeps it awake on its own.
 
-## 9. After handover
+## 9. Security pass (Aug 2026)
+
+A full review before launch. Three problems found and fixed; everything
+else verified clean.
+
+**Fixed**
+
+1. **Any visitor could mark the whole shop sold out.** `reserve_stock()` is
+   SECURITY DEFINER and was granted to `anon`; product ids are in the page
+   source and the publishable key is public, so one request could zero every
+   product. Execute revoked from anon — see `supabase/harden-stock-grants.sql`.
+   Checkout now calls it server-side with the service-role key.
+2. **Abandoned card checkouts held stock forever.** Sessions now expire after
+   30 minutes and `checkout.session.expired` returns the stock.
+3. **No limit on public writes.** Orders and messages are capped per email per
+   ten minutes, failing open so a database blip can never block a real sale.
+   Order line count capped too.
+
+**Verified clean:** customer data unreadable by anon; prices and settings not
+writable by anon; no `dangerouslySetInnerHTML`; service-role key only in
+server-only modules; every admin action calls `requireOwner()`; webhook is
+replay-safe; prices always recomputed server-side; the site degrades to
+fallback content rather than crashing if the database is unreachable.
+
+**Re-run the checks** any time with `npm run check:supabase`.
+
+## 10. After handover
 
 - Polly runs everything day to day: orders, pieces, photos, prices, stock,
   all site wording, section layout, accent colour, logo.
