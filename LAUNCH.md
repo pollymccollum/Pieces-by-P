@@ -314,7 +314,7 @@ emails can carry a Reply-To pointing at an inbox she actually reads.
 |---------|-----------|------------------|-----------|-----------|
 | **GitHub** | Yes | Unlimited private repos. **Free covers this project permanently** — the paid tiers are for organisations | Team | $4 / user / month |
 | **Supabase** | Yes | 500 MB database, 1 GB file storage, 5 GB bandwidth/mo. Pauses after ~7 days with zero traffic | Pro | **$25 / month** |
-| **Netlify** | Yes | 100 GB bandwidth/mo, 300 build minutes/mo | Pro | **$19 / month** (per member) |
+| **Netlify** | Yes | Credit-based. Live sites keep serving when credits run out; only new deploys pause until the cycle resets | Personal | **$9 / month** (Pro is $20, for teams) |
 | **Brevo** | Yes | 300 emails/day (~9,000/mo), no expiry, unlimited contacts | Starter | **$9 / month** (5k emails) |
 | **Stripe** | — | No free/paid tiers; per-transaction only | — | **$0 / month** |
 | **Venmo** | — | No monthly fee | — | **$0 / month** |
@@ -325,10 +325,11 @@ emails can carry a Reply-To pointing at an inbox she actually reads.
 | Scenario | Monthly | Yearly |
 |----------|---------|--------|
 | **All free tiers** (+ domain) | **~$1.25** | **~$15** |
-| **All paid tiers** (+ domain) | **~$54.25** | **~$651** |
+| **All paid tiers** (+ domain) | **~$44.25** | **~$531** |
 
-Breakdown of the all-paid figure: Supabase $25 + Netlify $19 + Brevo $9 =
-**$53/month**, plus the domain at ~$15/year. GitHub is excluded because its
+Breakdown of the all-paid figure: Supabase $25 + Netlify $9 + Brevo $9 =
+**$43/month**, plus the domain at ~$15/year. Netlify Personal, not Pro —
+Pro is priced for teams shipping code, which this shop is not. GitHub is excluded because its
 free tier covers a project like this permanently — there is no version of
 this shop that needs GitHub Team.
 
@@ -368,7 +369,12 @@ For a handmade jewellery shop the free limits are not close to binding:
   is the 1 GB of photo storage, roughly 300–500 product photos depending on
   size. The "pauses after 7 days" rule only bites a site with *no* visitors;
   a live shop won't hit it.
-- **Netlify** — 100 GB/month is far more traffic than a new shop sees.
+- **Netlify** — now credit-based rather than bandwidth-based. Credits are
+  spent on **builds**, and a build only happens when code is pushed. Polly
+  adding pieces, changing prices, uploading photos, or rewriting any text
+  does **not** build anything — those pages are rendered on demand and read
+  live from Supabase. So her running cost is close to zero credits a month.
+  Building the site is what burns them, and that stops at launch.
 - **Brevo** — 300 emails/day is around 75 orders a day, since each order
   sends up to 4 emails. She won't be near that, and the daily allowance
   resets rather than running out for the month.
@@ -448,7 +454,9 @@ to get past it — public repos have no contributor limit.
 
 1. Future commits are authored by Polly (i.e. Jack works signed in as her),
    so there is only one contributor — this fits the handover plan anyway; or
-2. Netlify Pro, ~$19/month.
+2. A paid Netlify plan (Personal $9/month at the time of writing).
+   Netlify has since moved to credit-based plans, so re-check whether the
+   one-contributor rule still applies before paying to work around it.
 
 Making it private does **not** take the site down — Netlify keeps serving the
 last successful build. It only blocks future builds from a second
