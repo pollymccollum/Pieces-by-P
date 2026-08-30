@@ -180,6 +180,48 @@ export async function sendVenmoReminder(orderId: string): Promise<ActionResult> 
   return { ok: true };
 }
 
+// Clears a finished order off the board, or puts it back.
+//
+// The organised answer to a cluttered dashboard, and the one to reach for
+// first: nothing is lost, the counts stop including it, and it is one click
+// to undo. deleteOrder below is for genuine rubbish only.
+export async function setOrderArchived(
+  orderId: string,
+  archived: boolean
+): Promise<ActionResult> {
+  await requireOwner();
+
+  const supabase = await getSupabaseAuthClient();
+  const { data: updated, error } = await supabase
+    .from("orders")
+    .update({
+      archived_at: archived ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .select("id");
+
+  if (error) {
+    // The column is added by a migration, so a project that skipped it
+    // fails here rather than anywhere confusing.
+    if (/archived_at/i.test(error.message)) {
+      return {
+        ok: false,
+        error: "Run supabase/add-order-archive.sql on the project, then try again.",
+      };
+    }
+    return { ok: false, error: error.message };
+  }
+
+  // Same trap as the delete: RLS refuses by matching no rows, not by erroring.
+  if (!updated || updated.length === 0) {
+    return { ok: false, error: "That order no longer exists." };
+  }
+
+  revalidatePath("/admin/orders");
+  return { ok: true };
+}
+
 // Removes an order and its lines for good.
 //
 // Kept because a real shop accumulates junk — test orders, a manual entry

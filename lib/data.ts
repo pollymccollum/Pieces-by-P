@@ -192,7 +192,7 @@ export async function getOrdersForOwner(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, order_items(id, product_name, unit_price_cents, quantity, customization, line_total_cents)"
+      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, archived_at, order_items(id, product_name, unit_price_cents, quantity, customization, line_total_cents)"
     )
     .order("created_at", { ascending: false }); // newest first
 
@@ -203,6 +203,7 @@ export async function getOrdersForOwner(): Promise<Order[]> {
     order_number: o.order_number,
     created_at: o.created_at,
     dateLabel: formatOrderDate(o.created_at),
+    archived_at: o.archived_at ?? null,
     customer_name: o.customer_name,
     customer_email: o.customer_email,
     customer_phone: o.customer_phone,
@@ -230,14 +231,20 @@ export async function getOrdersForOwner(): Promise<Order[]> {
 export function summariseOrders(orders: Order[]): OrderStats {
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
+  // The counts answer "what still needs me?", so archiving an order takes
+  // it out of them — that is the whole point of archiving it.
+  const live = orders.filter((o) => !o.archived_at);
+
   return {
-    newCount: orders.filter((o) => o.fulfillment_status === "new").length,
-    makingCount: orders.filter((o) => o.fulfillment_status === "making").length,
-    shippedCount: orders.filter((o) => o.fulfillment_status === "shipped").length,
+    newCount: live.filter((o) => o.fulfillment_status === "new").length,
+    makingCount: live.filter((o) => o.fulfillment_status === "making").length,
+    shippedCount: live.filter((o) => o.fulfillment_status === "shipped").length,
+    // Money is a fact about the week, not a to-do. Counted across every
+    // order, so tidying the board can never make revenue appear to drop.
     paidThisWeekCents: orders
       .filter((o) => o.payment_status === "paid" && new Date(o.created_at).getTime() >= weekAgo)
       .reduce((sum, o) => sum + o.total_cents, 0),
-    awaitingPaymentCount: orders.filter((o) => o.payment_status === "pending").length,
+    awaitingPaymentCount: live.filter((o) => o.payment_status === "pending").length,
   };
 }
 

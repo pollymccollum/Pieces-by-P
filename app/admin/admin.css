@@ -806,6 +806,42 @@
   margin-top: 5px;
 }
 
+/* Archive is the safe habit, so it reads as a real button while Delete
+   stays a quiet link beside it. */
+.oa-cardfoot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.oa-archive {
+  background: none;
+  border: 1px solid var(--hair);
+  color: var(--ink-soft);
+  border-radius: 22px;
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.oa-archive:hover:not(:disabled) {
+  border-color: var(--sage);
+  color: var(--sage-deep);
+}
+.oa-archive:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+/* Set aside, not gone: still fully readable, just visibly off duty. */
+.oa-card.archived {
+  background: var(--cream);
+  border-style: dashed;
+}
+.oa-card.archived .oa-name {
+  color: var(--ink-soft);
+}
+
 /* The tidy-up control. Quiet by default so it never competes with the
    buttons that move an order along, loud only once she has asked for it. */
 .oa-delete {
@@ -817,7 +853,6 @@
   text-transform: uppercase;
   text-decoration: underline;
   padding: 0;
-  margin-top: 16px;
 }
 .oa-delete:hover {
   color: #c25b4a;

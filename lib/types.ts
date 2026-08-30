@@ -163,6 +163,9 @@ export type Order = {
   payment_status: PaymentStatus;
   paid_at: string | null;
   fulfillment_status: FulfillmentStatus;
+  // Set when Polly clears a finished order off the board. The order keeps
+  // every detail; it just stops competing for attention. null = on the board.
+  archived_at: string | null;
   items: OrderItem[];
 };
 

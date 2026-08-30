@@ -9,9 +9,17 @@ import {
   type Order,
 } from "@/lib/types";
 import { money } from "@/lib/format";
-import { deleteOrder, sendVenmoReminder, setOrderStatus, setPaymentStatus } from "../actions";
+import {
+  deleteOrder,
+  sendVenmoReminder,
+  setOrderArchived,
+  setOrderStatus,
+  setPaymentStatus,
+} from "../actions";
 
-const FILTERS = ["All", "New", "Making", "Shipped"] as const;
+// "Archived" is a view, not a fulfilment stage — every other filter shows
+// only orders still on the board.
+const FILTERS = ["All", "New", "Making", "Shipped", "Archived"] as const;
 type Filter = (typeof FILTERS)[number];
 
 const METHODS = [
@@ -57,19 +65,30 @@ export function OrdersBoard({
   const [, start] = useTransition();
 
   const shown = useMemo(() => {
-    let list = orders;
+    // Archived orders are hidden everywhere except their own view. That's
+    // the whole feature: the board shows what still needs her.
+    let list =
+      filter === "Archived"
+        ? orders.filter((o) => o.archived_at)
+        : orders.filter((o) => !o.archived_at);
+
     if (method !== "all") list = list.filter((o) => o.payment_method === method);
-    if (filter !== "All")
+    if (filter !== "All" && filter !== "Archived")
       list = list.filter((o) => o.fulfillment_status === filter.toLowerCase());
     return list;
   }, [orders, filter, method]);
+
+  const archivedCount = useMemo(() => orders.filter((o) => o.archived_at).length, [orders]);
 
   // Venmo money only lands when Polly confirms it, so surface how much is
   // still outstanding while she's looking at the Venmo view.
   const venmoOwed = useMemo(
     () =>
       orders
-        .filter((o) => o.payment_method === "venmo" && o.payment_status === "pending")
+        .filter(
+          (o) =>
+            !o.archived_at && o.payment_method === "venmo" && o.payment_status === "pending"
+        )
         .reduce((sum, o) => sum + o.total_cents, 0),
     [orders]
   );
@@ -118,6 +137,16 @@ export function OrdersBoard({
         setError(res.error);
       }
       setRemindingId(null);
+    });
+  };
+
+  const archive = (o: Order, archived: boolean) => {
+    setError(null);
+    setBusyId(o.id);
+    start(async () => {
+      const res = await setOrderArchived(o.id, archived);
+      if (!res.ok) setError(res.error);
+      setBusyId(null);
     });
   };
 
@@ -204,6 +233,7 @@ export function OrdersBoard({
             onClick={() => setFilter(f)}
           >
             {f}
+            {f === "Archived" && archivedCount > 0 ? ` (${archivedCount})` : ""}
           </button>
         ))}
       </div>
@@ -245,6 +275,12 @@ export function OrdersBoard({
               <>No Venmo orders{filter !== "All" ? ` in ${filter.toLowerCase()}` : ""} right now.</>
             ) : method === "card" ? (
               <>No card orders{filter !== "All" ? ` in ${filter.toLowerCase()}` : ""} right now.</>
+            ) : filter === "Archived" ? (
+              <>
+                Nothing archived yet.
+                <br />
+                Archiving clears a finished order off the board without losing it.
+              </>
             ) : (
               <>Nothing in {filter.toLowerCase()} right now.</>
             )}
@@ -252,7 +288,12 @@ export function OrdersBoard({
         </div>
       ) : (
         shown.map((o) => (
-          <div key={o.id} className={`oa-card ${o.fulfillment_status === "new" ? "new" : ""}`}>
+          <div
+            key={o.id}
+            className={`oa-card ${
+              o.archived_at ? "archived" : o.fulfillment_status === "new" ? "new" : ""
+            }`}
+          >
             <div className="oa-chead">
               <div>
                 <div className="oa-onum">
@@ -445,9 +486,20 @@ export function OrdersBoard({
                 </div>
               </div>
             ) : (
-              <button className="oa-delete" onClick={() => setConfirmId(o.id)}>
-                Delete order
-              </button>
+              <div className="oa-cardfoot">
+                {/* The organised answer, and the prominent one. Nothing is
+                    lost and it is one click to undo. */}
+                <button
+                  className="oa-archive"
+                  disabled={busyId === o.id}
+                  onClick={() => archive(o, !o.archived_at)}
+                >
+                  {o.archived_at ? "Put back on the board" : "Archive"}
+                </button>
+                <button className="oa-delete" onClick={() => setConfirmId(o.id)}>
+                  Delete order
+                </button>
+              </div>
             )}
           </div>
         ))
