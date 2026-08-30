@@ -6,9 +6,11 @@ import { getSupabaseAuthClient } from "@/lib/supabase/admin-client";
 import { getAllProductsForOwner, getOrdersForOwner, getSiteSettings } from "@/lib/data";
 import {
   formatAddress,
+  isEmailConfigured,
   sendNewOrderEmails,
   sendPaymentReceivedEmail,
   sendShippedEmail,
+  sendVenmoReminderEmail,
 } from "@/lib/email";
 import {
   newOrderNumber,
@@ -130,6 +132,48 @@ export async function setPaymentStatus(
   if (status === "paid") {
     const [order, settings] = await Promise.all([findOrder(orderId), getSiteSettings()]);
     if (order) await sendPaymentReceivedEmail(order, settings.brand);
+  }
+
+  revalidatePath("/admin/orders");
+  return { ok: true };
+}
+
+// Nudges a customer whose Venmo hasn't arrived.
+//
+// Deliberately a button rather than a timer. Only Polly knows whether a
+// nudge is welcome — someone who messaged her this morning saying "sending
+// it tonight" should not get chased, and an automated reminder would look
+// impersonal from a one-person shop.
+//
+// Refuses card orders: those are Stripe's to chase, and there is nothing a
+// customer can do about a card payment that already succeeded or failed.
+export async function sendVenmoReminder(orderId: string): Promise<ActionResult> {
+  await requireOwner();
+
+  const [order, settings] = await Promise.all([findOrder(orderId), getSiteSettings()]);
+  if (!order) return { ok: false, error: "That order no longer exists." };
+
+  if (order.payment_method !== "venmo") {
+    return { ok: false, error: "Reminders are only for Venmo orders." };
+  }
+  if (order.payment_status !== "pending") {
+    return { ok: false, error: "That order is already settled — no reminder needed." };
+  }
+  if (!order.customer_email) {
+    return { ok: false, error: "No email address on that order. Try their phone or Instagram." };
+  }
+  if (!isEmailConfigured()) {
+    return { ok: false, error: "Email isn't switched on yet, so reminders can't send." };
+  }
+
+  const res = await sendVenmoReminderEmail(
+    order,
+    settings.brand,
+    settings.venmoHandle,
+    settings.contact.location
+  );
+  if (!res.sent) {
+    return { ok: false, error: `Couldn't send that reminder${res.reason ? ` (${res.reason})` : ""}.` };
   }
 
   revalidatePath("/admin/orders");
@@ -462,6 +506,9 @@ export async function createManualOrder(
       paymentMethod: method,
       venmoHandle: settings.venmoHandle,
       brand: settings.brand,
+      // Her wording, edited at /admin/content.
+      note: settings.emails.confirmationNote,
+      signoff: settings.emails.signoff,
       notifyOwner: false,
     });
 

@@ -142,9 +142,9 @@ if (stockCol.error && /column .* does not exist|42703/i.test(stockCol.error.mess
 }
 
 // 9. email (optional — the site works fine without it)
-if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
+if (!process.env.BREVO_API_KEY || !process.env.EMAIL_FROM) {
   warn("email not configured — no confirmation/shipped emails will send");
-  warn("  -> set RESEND_API_KEY and EMAIL_FROM in .env.local (resend.com)");
+  warn("  -> set BREVO_API_KEY and EMAIL_FROM in .env.local (brevo.com)");
 } else {
   ok(`emails send from ${process.env.EMAIL_FROM}`);
 }

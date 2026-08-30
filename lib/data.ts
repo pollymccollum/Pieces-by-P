@@ -51,6 +51,12 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     title: "Made by hand, one piece at a time",
     body: "Every piece is designed and strung by Polly in small batches. Choose your colors, add an initial or a charm, and each order is made just for you. Handmade to order, so most pieces ship within about a week.",
   },
+  emails: {
+    confirmationNote: "Each piece is handmade to order and ships in about a week.",
+    signoff: "Thank you for supporting a small handmade shop.",
+    contactReply:
+      "Polly reads every message herself and will come back to you as soon as she can. Custom pieces usually start with a few questions about colors and sizing, so expect a reply rather than a quote straight away.",
+  },
   contact: {
     heading: "Custom orders, pop-ups, and hellos",
     instagram: "@shop.piecesbyp",
@@ -81,6 +87,9 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     hero: { ...FALLBACK_SETTINGS.hero, ...row.hero },
     about: { ...FALLBACK_SETTINGS.about, ...row.about },
     contact: { ...FALLBACK_SETTINGS.contact, ...row.contact },
+    // Merged like the rest: a settings row written before this existed
+    // still gets the default wording rather than blank emails.
+    emails: { ...FALLBACK_SETTINGS.emails, ...row.emails },
   };
 }
 

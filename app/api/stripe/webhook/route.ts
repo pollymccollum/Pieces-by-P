@@ -137,6 +137,9 @@ export async function POST(req: NextRequest) {
       paymentMethod: "card",
       venmoHandle: settings.venmoHandle,
       brand: settings.brand,
+      // Her wording, edited at /admin/content.
+      note: settings.emails.confirmationNote,
+      signoff: settings.emails.signoff,
     });
   } catch (err) {
     // The payment is recorded; a failed email must not make Stripe retry and

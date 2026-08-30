@@ -159,6 +159,9 @@ export async function placeVenmoOrder(
       paymentMethod: "venmo",
       venmoHandle: settings.venmoHandle,
       brand: settings.brand,
+      // Her wording, edited at /admin/content.
+      note: settings.emails.confirmationNote,
+      signoff: settings.emails.signoff,
     });
 
     return {

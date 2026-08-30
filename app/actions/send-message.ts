@@ -2,7 +2,7 @@
 
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/data";
-import { notifyOwnerOfMessage } from "@/lib/email";
+import { notifyOwnerOfMessage, sendContactAutoReply } from "@/lib/email";
 import { isRateLimited, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
 
 export type SendMessageResult = { ok: true } | { ok: false; error: string };
@@ -36,12 +36,23 @@ export async function sendContactMessage(input: {
     return { ok: false, error: "Something went wrong sending that. Please try again." };
   }
 
-  // Saved first, notified second: the message is safe even if email fails.
+  // Saved first, emailed second: the message is safe even if email fails.
+  // Both go out together — the owner's alert and the sender's receipt.
   try {
     const settings = await getSiteSettings();
-    await notifyOwnerOfMessage({ name, email, body, brand: settings.brand });
+    await Promise.allSettled([
+      notifyOwnerOfMessage({ name, email, body, brand: settings.brand }),
+      sendContactAutoReply({
+        to: email,
+        name,
+        body,
+        brand: settings.brand,
+        location: settings.contact.location,
+        reply: settings.emails.contactReply,
+      }),
+    ]);
   } catch (err) {
-    console.error("[contact] saved but notification failed:", err);
+    console.error("[contact] saved but email failed:", err);
   }
 
   return { ok: true };

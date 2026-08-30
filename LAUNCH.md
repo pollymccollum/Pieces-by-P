@@ -18,7 +18,7 @@ Polly's own email and password.** Not Jack's, not a shared login. If an
 account is under someone else's name, she can be locked out of her own
 business.
 
-Jack's dev accounts (the current Supabase project, Resend, Stripe test mode)
+Jack's dev accounts (the current Supabase project, Brevo, Stripe test mode)
 are throwaways. **None of them carry over.** They get deleted after launch.
 
 | # | Account | What it's for | Who must do it | Status |
@@ -26,7 +26,7 @@ are throwaways. **None of them carry over.** They get deleted after launch.
 | 1 | **GitHub** | Stores the code Netlify builds from | Polly creates, then never touches it | ☐ |
 | 2 | **Supabase** | Database — products, orders, site wording, photos | Polly creates, Jack configures | ☐ |
 | 3 | **Stripe** | Card payments | **Polly only** — identity + bank | ☐ |
-| 4 | **Resend** | Confirmation / shipped emails | Polly creates, Jack configures | ☐ |
+| 4 | **Brevo** | Confirmation / shipped / reminder emails | Polly creates, Jack configures | ☐ |
 | 5 | **Netlify** | Hosting the website | Polly creates, Jack deploys | ☐ |
 | 6 | **Domain registrar** | `piecesbyp.com` (or chosen name) | Polly buys | ☐ |
 | 7 | **Venmo business profile** | Venmo orders | **Polly only** — her identity | ☐ |
@@ -53,7 +53,7 @@ For each account, Jack needs the **API keys only** — never her passwords:
 
 - Supabase → Project URL + publishable key
 - Stripe → publishable key + secret key + webhook signing secret
-- Resend → API key
+- Brevo → API key
 - Netlify → she just adds Jack as a collaborator, or pastes the keys herself
 
 Best practice: sit together and have **her** type the passwords, then paste
@@ -117,8 +117,10 @@ Rough order of operations. Items marked ⏳ have a waiting period.
          checkout depends on live only in that file.
 6. [x] Jack runs `verify-rls.sql`, then `npm run check:supabase` — both should come back clean
 7. [x] Polly creates her admin login (Supabase → Authentication → Users)
-8. [ ] Polly creates Resend account
-9. [ ] ⏳ Verify the domain in Resend (2 DNS records; propagation can take hours)
+8. [ ] Polly creates Brevo account (brevo.com, free tier)
+9. [ ] ⏳ Verify `piecesbyp.com` in Brevo — add the TXT/CNAME records it gives you
+        at **Wix**, not Netlify. TXT and CNAME only, so Wix DNS can do it;
+        that is why this is Brevo and not Resend. Propagation can take hours.
 10. [x] Polly creates Netlify account
 11. [x] Jack deploys, sets all environment variables in Netlify
 12. [x] Point the domain at Netlify
@@ -160,7 +162,7 @@ accounts and *her* keys.
         Netlify and redeploy.
         Miss this and cards are charged while no order is ever recorded.
 21. [ ] Place one real order with a real card, then refund it from the Stripe dashboard
-22. [ ] Delete Jack's dev accounts: Supabase project, Resend, Stripe test account
+22. [ ] Delete Jack's dev accounts: Supabase project, Brevo, Stripe test account
 
 ---
 
@@ -240,6 +242,49 @@ placing an order fails.
    contact columns, stock functions, email config, and the admin gate in one
    go. Fix anything it flags before deploying.
 
+### Brevo setup, step by step
+
+The expanded version of steps 8–9. Emails are optional — the shop sells fine
+without them — so this can be done after launch if the DNS is being slow.
+
+**A. Create the account**
+
+1. Polly signs up at [brevo.com](https://www.brevo.com) with **her** email.
+   Free plan; no card needed. It asks what the account is for — "transactional
+   emails for my website" is the honest answer.
+2. **Senders, Domains & Dedicated IPs → Domains → Add a domain.** Enter
+   `piecesbyp.com`.
+
+**B. Verify the domain at Wix**
+
+3. Brevo shows 3 records: a **TXT** (`brevo-code…`), a **DKIM CNAME**
+   (`brevo1._domainkey`), and a **DMARC TXT** (`_dmarc`). All TXT/CNAME —
+   no MX record on a subdomain, which is exactly why Brevo was chosen over
+   Resend, since Wix DNS can't do that.
+4. In **Wix → Domains → `piecesbyp.com` → DNS Records**, add each one exactly
+   as Brevo prints it. Wix appends the domain automatically, so enter the
+   host as `brevo1._domainkey`, **not** `brevo1._domainkey.piecesbyp.com`.
+5. Back in Brevo, click **Verify**. If it fails, wait — propagation is often
+   an hour and can be several. Nothing else is wrong.
+
+**C. Wire it up**
+
+6. **SMTP & API → API keys → Generate a new API key.** Copy it once; Brevo
+   won't show it again. This is a secret: it goes straight into Netlify and
+   `.env.local`, never into a chat or a commit.
+7. Set both variables in **Netlify → Site configuration → Environment
+   variables**, then redeploy:
+   - `BREVO_API_KEY` = the key from step 6
+   - `EMAIL_FROM` = `Pieces by P <orders@piecesbyp.com>`
+8. Confirm with `npm run check:supabase` — it reports the send-from address
+   when both are set, and warns when they aren't.
+
+**D. Check it actually sends**
+
+9. Place a test order and confirm the confirmation email arrives. Check the
+   spam folder too: a brand-new sending domain has no reputation yet, and a
+   first email sometimes lands there before settling down.
+
 ---
 
 ## 4. What it costs
@@ -251,7 +296,7 @@ placing an order fails.
 | **GitHub** | Yes | Unlimited private repos. **Free covers this project permanently** — the paid tiers are for organisations | Team | $4 / user / month |
 | **Supabase** | Yes | 500 MB database, 1 GB file storage, 5 GB bandwidth/mo. Pauses after ~7 days with zero traffic | Pro | **$25 / month** |
 | **Netlify** | Yes | 100 GB bandwidth/mo, 300 build minutes/mo | Pro | **$19 / month** (per member) |
-| **Resend** | Yes | 3,000 emails/mo, 100/day, 1 domain | Pro | **$20 / month** |
+| **Brevo** | Yes | 300 emails/day (~9,000/mo), no expiry, unlimited contacts | Starter | **$9 / month** (5k emails) |
 | **Stripe** | — | No free/paid tiers; per-transaction only | — | **$0 / month** |
 | **Venmo** | — | No monthly fee | — | **$0 / month** |
 | **Domain** | No free option | — | Required | **~$12–15 / year** (~$1.25/mo) |
@@ -261,10 +306,10 @@ placing an order fails.
 | Scenario | Monthly | Yearly |
 |----------|---------|--------|
 | **All free tiers** (+ domain) | **~$1.25** | **~$15** |
-| **All paid tiers** (+ domain) | **~$65.25** | **~$783** |
+| **All paid tiers** (+ domain) | **~$54.25** | **~$651** |
 
-Breakdown of the all-paid figure: Supabase $25 + Netlify $19 + Resend $20 =
-**$64/month**, plus the domain at ~$15/year. GitHub is excluded because its
+Breakdown of the all-paid figure: Supabase $25 + Netlify $19 + Brevo $9 =
+**$53/month**, plus the domain at ~$15/year. GitHub is excluded because its
 free tier covers a project like this permanently — there is no version of
 this shop that needs GitHub Team.
 
@@ -305,8 +350,9 @@ For a handmade jewellery shop the free limits are not close to binding:
   size. The "pauses after 7 days" rule only bites a site with *no* visitors;
   a live shop won't hit it.
 - **Netlify** — 100 GB/month is far more traffic than a new shop sees.
-- **Resend** — 3,000 emails/month is around 750 orders, since each order
-  sends up to 4 emails. She won't be near that.
+- **Brevo** — 300 emails/day is around 75 orders a day, since each order
+  sends up to 4 emails. She won't be near that, and the daily allowance
+  resets rather than running out for the month.
 
 So the realistic running cost is **the domain (~$12–15/year) plus transaction
 fees on actual sales.** Nothing else, quite possibly for years.
@@ -347,11 +393,11 @@ that machine is on, off, or thrown away.
 
 | | Lives in | Changed by | Needs a developer? |
 |---|---|---|---|
-| **Content** — pieces, photos, prices, stock, all site wording, logo, colours, section order | Supabase | Polly, at `/admin` | **No** |
+| **Content** — pieces, photos, prices, stock, all site wording, email wording, logo, colours, section order | Supabase | Polly, at `/admin` | **No** |
 | **Code** — how the site behaves; new features | GitHub | A developer, via push | Yes |
 
 **Access is controlled by keys, not by who has the code.** The code isn't
-secret; the `.env` values (Supabase, Stripe, Resend keys) are. After handover
+secret; the `.env` values (Supabase, Stripe, Brevo keys) are. After handover
 Jack has access only while Polly grants it — as a GitHub collaborator, or by
 sharing specific keys for a specific job. Remove that and a local copy is
 inert. This is deliberate: it's what makes her ownership real.
@@ -460,7 +506,10 @@ fallback content rather than crashing if the database is unreachable.
 ## 10. After handover
 
 - Polly runs everything day to day: orders, pieces, photos, prices, stock,
-  all site wording, section layout, accent colour, logo.
+  all site wording, the wording of her automatic emails, section layout,
+  accent colour, logo.
+- Locked out? **Forgot your password?** on the sign-in page emails her a
+  reset link. Open it in the same browser she asked from. No developer.
 - She does **not** need a developer for any of that.
 - New features or bugs still need Jack — normal software maintenance, and
   separate from running the shop.

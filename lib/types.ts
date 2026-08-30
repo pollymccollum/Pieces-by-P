@@ -73,6 +73,18 @@ export type ContactContent = {
   findus: string;
 };
 
+// Wording Polly can rewrite in the site editor. The facts around it —
+// order number, items, totals, address, the Venmo instructions — stay
+// generated, so editing the friendly part can't break the useful part.
+export type EmailContent = {
+  // Sits under "Thank you, <first name>!" in the order confirmation.
+  confirmationNote: string;
+  // Closing line on the confirmation, above the footer.
+  signoff: string;
+  // The auto-reply to someone who used the custom-orders form.
+  contactReply: string;
+};
+
 // Client-side cart state. `product` is resolved live from the loaded
 // products list (not stored), so edits to price/name during a session stay
 // in sync — mirrors how pieces-by-p-store.jsx joins cart lines to products.
@@ -267,4 +279,5 @@ export type SiteSettingsData = {
   hero: HeroContent;
   about: AboutContent;
   contact: ContactContent;
+  emails: EmailContent;
 };

@@ -9,7 +9,7 @@ import {
   type Order,
 } from "@/lib/types";
 import { money } from "@/lib/format";
-import { setOrderStatus, setPaymentStatus } from "../actions";
+import { sendVenmoReminder, setOrderStatus, setPaymentStatus } from "../actions";
 
 const FILTERS = ["All", "New", "Making", "Shipped"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -46,6 +46,10 @@ export function OrdersBoard({
   const [method, setMethod] = useState<MethodKey>("all");
   const [copied, setCopied] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Reminder has its own busy/confirmed ids so the "Mark paid" button
+  // doesn't flicker while an email is on its way.
+  const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [remindedId, setRemindedId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [, start] = useTransition();
 
@@ -98,11 +102,28 @@ export function OrdersBoard({
     });
   };
 
+  // Sends the "still owe you" nudge. Polly decides when — see the note on
+  // sendVenmoReminder in app/admin/actions.ts.
+  const remind = (o: Order) => {
+    setError(null);
+    setRemindingId(o.id);
+    start(async () => {
+      const res = await sendVenmoReminder(o.id);
+      if (res.ok) {
+        setRemindedId(o.id);
+      } else {
+        setError(res.error);
+      }
+      setRemindingId(null);
+    });
+  };
+
   const changePayment = (o: Order, paid: boolean) => {
     setError(null);
     setBusyId(o.id);
     start(async () => {
       const res = await setPaymentStatus(o.id, paid ? "paid" : "pending");
+      if (res.ok && paid) setRemindedId((id) => (id === o.id ? null : id));
       if (!res.ok) setError(res.error);
       setBusyId(null);
     });
@@ -334,13 +355,31 @@ export function OrdersBoard({
                     </button>
                   </>
                 ) : (
-                  <button
-                    className="oa-markpaid"
-                    disabled={busyId === o.id}
-                    onClick={() => changePayment(o, true)}
-                  >
-                    {busyId === o.id ? "Saving…" : `Mark paid · ${money(o.total_cents)}`}
-                  </button>
+                  <>
+                    <button
+                      className="oa-markpaid"
+                      disabled={busyId === o.id}
+                      onClick={() => changePayment(o, true)}
+                    >
+                      {busyId === o.id ? "Saving…" : `Mark paid · ${money(o.total_cents)}`}
+                    </button>
+                    {/* Only for Venmo, and only when there's somewhere to send
+                        it. Repeatable on purpose — some people need two. */}
+                    {o.payment_method === "venmo" && o.customer_email && (
+                      <button
+                        className="oa-remind"
+                        disabled={remindingId === o.id || busyId === o.id}
+                        onClick={() => remind(o)}
+                        title={`Email ${o.customer_email} a reminder to send the Venmo`}
+                      >
+                        {remindingId === o.id
+                          ? "Sending…"
+                          : remindedId === o.id
+                            ? "Reminder sent ✓"
+                            : "Send reminder"}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             )}

@@ -2,11 +2,13 @@ import "server-only";
 import type { Order } from "@/lib/types";
 import { sendMail, isEmailConfigured } from "./client";
 import {
+  contactReceived,
   orderConfirmation,
   orderShipped,
   ownerNewMessage,
   ownerNewOrder,
   paymentReceived,
+  venmoReminder,
   type OrderEmailData,
 } from "./templates";
 
@@ -94,4 +96,47 @@ export async function notifyOwnerOfMessage(args: {
 }): Promise<void> {
   if (!isEmailConfigured()) return;
   await sendMail(ownerNewMessage({ ...args, adminUrl: `${siteUrl()}/admin/messages` }));
+}
+
+// Auto-reply to whoever used the contact form. Sent after the message is
+// already saved, so a mail failure loses nothing.
+export async function sendContactAutoReply(args: {
+  to: string;
+  name: string;
+  body: string;
+  brand: string;
+  location: string;
+  reply: string;
+}): Promise<void> {
+  if (!isEmailConfigured() || !args.to) return;
+  const mail = contactReceived({
+    brand: args.brand,
+    name: args.name,
+    body: args.body,
+    location: args.location,
+    reply: args.reply,
+  });
+  await sendMail({ ...mail, to: args.to });
+}
+
+// Nudges a customer whose Venmo hasn't arrived. Triggered by hand from the
+// orders page — see setPaymentStatus's neighbours in app/admin/actions.ts.
+export async function sendVenmoReminderEmail(
+  order: Order,
+  brand: string,
+  venmoHandle: string,
+  location: string
+): Promise<{ sent: boolean; reason?: string }> {
+  if (!isEmailConfigured()) return { sent: false, reason: "email not configured" };
+  if (!order.customer_email) return { sent: false, reason: "no email address" };
+
+  const mail = venmoReminder({
+    brand,
+    orderNumber: order.order_number,
+    customerName: order.customer_name,
+    totalCents: order.total_cents,
+    venmoHandle,
+    location,
+  });
+  return sendMail({ ...mail, to: order.customer_email });
 }

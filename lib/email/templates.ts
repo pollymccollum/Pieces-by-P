@@ -25,6 +25,9 @@ export type OrderEmailData = {
   paymentMethod: "card" | "venmo";
   venmoHandle: string;
   brand: string;
+  // Polly's own wording, from the site editor. See EmailContent.
+  note: string;
+  signoff: string;
 };
 
 // `location` comes from site settings, so the owner moving town is an
@@ -55,6 +58,28 @@ function esc(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// Owner-written wording arrives as plain text from a textarea. Blank lines
+// become paragraphs and single newlines become breaks, so what she typed is
+// what she gets — escaped first, because it lands inside HTML.
+function paragraphs(text: string, color: string): string {
+  const blocks = String(text ?? '')
+    .trim()
+    .split(/\n\s*\n/)
+    .filter(Boolean);
+
+  return blocks
+    .map(
+      (b) =>
+        `<p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:${color};">${esc(b).replace(/\n/g, "<br />")}</p>`
+    )
+    .join('');
+}
+
+// Same text for the plain-text alternate: no escaping, no markup.
+function plain(text: string): string {
+  return String(text ?? '').trim();
 }
 
 function itemsHtml(d: OrderEmailData): string {
@@ -132,22 +157,24 @@ export function orderConfirmation(d: OrderEmailData): Mail {
     d.brand,
     `Thank you, ${firstName}!`,
     `
-    <p style="margin:0 0 6px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
+    <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
       Your order <strong style="color:${INK};">${esc(d.orderNumber)}</strong> is in.
-      Each piece is handmade to order and ships in about a week.
     </p>
+    ${paragraphs(d.note, INK_SOFT)}
     ${venmoBlock}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:16px 0 0;">Your pieces</div>
     ${itemsHtml(d)}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:20px 0 6px;">Shipping to</div>
     <p style="margin:0;font-size:14px;line-height:1.65;color:${INK};">${d.address.map(esc).join("<br />")}</p>
+    ${d.signoff.trim() ? `<div style="border-top:1px solid ${HAIR};margin-top:20px;padding-top:16px;">${paragraphs(d.signoff, INK)}</div>` : ""}
   `
   );
 
   const text = [
     `Thank you, ${firstName}!`,
     ``,
-    `Your order ${d.orderNumber} is in. Each piece is handmade to order and ships in about a week.`,
+    `Your order ${d.orderNumber} is in.`,
+    ...(plain(d.note) ? [``, plain(d.note)] : []),
     ...(d.paymentMethod === "venmo"
       ? [
           ``,
@@ -162,6 +189,7 @@ export function orderConfirmation(d: OrderEmailData): Mail {
     ``,
     `SHIPPING TO`,
     ...d.address.map((l) => `  ${l}`),
+    ...(plain(d.signoff) ? [``, plain(d.signoff)] : []),
   ].join("\n");
 
   return {
@@ -340,5 +368,107 @@ export function ownerNewMessage(args: {
     html,
     text,
     replyTo: args.email,
+  };
+}
+
+// ── 6. Contact form auto-reply (to the customer) ────────────
+// Someone asking about a custom piece currently gets an on-screen
+// confirmation and then silence. For a shop whose whole pitch is "tell us
+// your colours", that first exchange matters — this gives them a receipt.
+export function contactReceived(args: {
+  brand: string;
+  name: string;
+  body: string;
+  location: string;
+  reply: string; // Polly's wording, from the site editor
+}): Mail {
+  const firstName = args.name.split(" ")[0] || "there";
+
+  const html = shell(
+    args.brand,
+    `Thanks, ${firstName} — we've got your message`,
+    `
+    ${paragraphs(args.reply, INK_SOFT)}
+    <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:6px 0 6px;">What you sent</div>
+    <div style="background:${CREAM};border:1px solid ${HAIR};border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${esc(args.body)}</div>
+  `,
+    args.location
+  );
+
+  const text = [
+    `Thanks, ${firstName} — we've got your message`,
+    ``,
+    plain(args.reply),
+    ``,
+    `WHAT YOU SENT`,
+    args.body,
+  ].join(NEWLINE);
+
+  return {
+    to: "",
+    subject: `We got your message — ${args.brand}`,
+    html,
+    text,
+  };
+}
+
+// ── 7. Venmo payment reminder (to the customer) ─────────────
+// Sent by hand from the orders page, not on a timer. An unpaid Venmo order
+// holds its stock and represents a sale not yet collected, but only Polly
+// can judge whether a nudge is welcome or premature.
+export function venmoReminder(args: {
+  brand: string;
+  orderNumber: string;
+  customerName: string;
+  totalCents: number;
+  venmoHandle: string;
+  location: string;
+}): Mail {
+  const firstName = args.customerName.split(" ")[0] || "there";
+
+  const html = shell(
+    args.brand,
+    `A reminder about order ${args.orderNumber}`,
+    `
+    <p style="margin:0 0 6px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
+      Hi ${esc(firstName)} — your pieces are still set aside, and we haven't
+      seen the Venmo come through yet.
+    </p>
+    <div style="background:#F4E4C6;border:1px solid #E0C68F;border-radius:10px;padding:16px;margin:18px 0;">
+      <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#6B4A12;">
+        Send <strong>${money(args.totalCents)}</strong> on Venmo${
+          args.venmoHandle ? ` to <strong>${esc(args.venmoHandle)}</strong>` : ""
+        }, with this in the note:
+      </p>
+      <div style="background:${SURFACE};border:1px dashed #D8B877;border-radius:8px;padding:10px 14px;font-size:17px;letter-spacing:0.08em;text-align:center;color:${INK};">
+        ${esc(args.orderNumber)}
+      </div>
+    </div>
+    <p style="margin:0;font-size:13px;line-height:1.65;color:${INK_SOFT};">
+      Already sent it? Then it just hasn't been matched up yet — no need to do
+      anything, and apologies for the nudge. Changed your mind? Reply to this
+      email and we'll release the pieces.
+    </p>
+  `,
+    args.location
+  );
+
+  const text = [
+    `A reminder about order ${args.orderNumber}`,
+    ``,
+    `Hi ${firstName} — your pieces are still set aside, and we haven't seen the Venmo yet.`,
+    ``,
+    `Send ${money(args.totalCents)} on Venmo${args.venmoHandle ? ` to ${args.venmoHandle}` : ""},`,
+    `with ${args.orderNumber} in the note.`,
+    ``,
+    `Already sent it? It just hasn't been matched up yet — nothing to do.`,
+    `Changed your mind? Reply and we'll release the pieces.`,
+  ].join(NEWLINE);
+
+  return {
+    to: "",
+    subject: `Reminder: your ${args.brand} order ${args.orderNumber}`,
+    html,
+    text,
   };
 }

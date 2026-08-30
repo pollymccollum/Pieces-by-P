@@ -396,6 +396,64 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </div>
       </div>
 
+      {/* ---- emails ---- */}
+      {/* Only the friendly wording is editable. Order numbers, items, totals,
+          the address, and the Venmo instructions stay generated, so nothing
+          she types here can leave a customer without the facts. */}
+      <div className="ad-card">
+        <p className="ad-sec">Emails</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          What your automatic emails say. Everything else — order number, the
+          pieces, the total, the address, the Venmo instructions — is filled in
+          for you and can&apos;t be deleted by accident.
+        </p>
+
+        <div className="ad-field">
+          <span className="ad-lbl">Order confirmation — your message</span>
+          <textarea
+            className="pp-textarea"
+            style={{ minHeight: 90 }}
+            value={s.emails.confirmationNote}
+            onChange={(e) => patch({ emails: { ...s.emails, confirmationNote: e.target.value } })}
+          />
+          <span className="ad-help">
+            Sits right under &ldquo;Thank you, [their first name]!&rdquo;. Leave a
+            blank line between paragraphs.
+          </span>
+        </div>
+
+        <div className="ad-field" style={{ marginTop: 14 }}>
+          <span className="ad-lbl">Order confirmation — sign-off</span>
+          <textarea
+            className="pp-textarea"
+            style={{ minHeight: 70 }}
+            value={s.emails.signoff}
+            onChange={(e) => patch({ emails: { ...s.emails, signoff: e.target.value } })}
+          />
+          <span className="ad-help">The last thing they read. Leave it empty to skip it.</span>
+        </div>
+
+        <div className="ad-field" style={{ marginTop: 14 }}>
+          <span className="ad-lbl">Custom order reply</span>
+          <textarea
+            className="pp-textarea"
+            style={{ minHeight: 90 }}
+            value={s.emails.contactReply}
+            onChange={(e) => patch({ emails: { ...s.emails, contactReply: e.target.value } })}
+          />
+          <span className="ad-help">
+            Goes back automatically to anyone who sends you a message, along with
+            a copy of what they wrote.
+          </span>
+        </div>
+
+        <EmailPreview
+          brand={s.brand}
+          note={s.emails.confirmationNote}
+          signoff={s.emails.signoff}
+        />
+      </div>
+
       {/* ---- shipping + categories ---- */}
       <div className="ad-card">
         <p className="ad-sec">Shipping &amp; payment</p>
@@ -640,5 +698,53 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </button>
       </div>
     </>
+  );
+}
+
+// Shows Polly her words sitting inside the parts she doesn't control, so
+// "what does the customer actually get?" is answered on the page rather than
+// by placing a test order.
+function EmailPreview({
+  brand,
+  note,
+  signoff,
+}: {
+  brand: string;
+  note: string;
+  signoff: string;
+}) {
+  const blocks = (text: string) =>
+    text
+      .trim()
+      .split(/\n\s*\n/)
+      .filter(Boolean);
+
+  return (
+    <div className="ad-mailprev">
+      <div className="ad-mailprev-brand">{brand || "Pieces by P"}</div>
+      <div className="ad-mailprev-sheet">
+        <div className="ad-mailprev-h">Thank you, Sarah!</div>
+        <p className="ad-mailprev-fixed">
+          Your order <b>PBP-K7QM2</b> is in.
+        </p>
+        {blocks(note).map((b, i) => (
+          <p className="ad-mailprev-yours" key={i}>
+            {b}
+          </p>
+        ))}
+        <div className="ad-mailprev-rest">
+          Your pieces, the total, and the shipping address go here
+          {"\u2014"} filled in automatically.
+        </div>
+        {blocks(signoff).map((b, i) => (
+          <p className="ad-mailprev-yours" key={i} style={{ marginTop: 10 }}>
+            {b}
+          </p>
+        ))}
+      </div>
+      <div className="ad-mailprev-note">
+        Preview. Sage text is yours; grey is filled in for you.
+      </div>
+    </div>
   );
 }

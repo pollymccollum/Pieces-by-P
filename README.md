@@ -78,6 +78,12 @@ the email, then set `ADMIN_EMAIL` in `.env.local` to that same address and
 restart the dev server. Any other account is refused even if it can
 authenticate — see `lib/auth.ts`.
 
+If she forgets the password, **Forgot your password?** on the sign-in page
+emails a reset link. It lands on `/admin/auth/callback`, which exchanges
+the one-time code for a session and sends her to `/admin/reset-password`.
+The link has to be opened in the browser that asked for it — the PKCE
+verifier lives in a cookie there — and the login page says so if it isn't.
+
 ### 4. Verify and run
 
 ```bash
@@ -96,15 +102,32 @@ Four transactional emails, all automatic — the owner never sends one by hand:
 | New order alert | Checkout completes (not for manually-entered orders) | Owner |
 | Payment received | Owner marks a Venmo order paid | Customer |
 | Shipped | Owner taps **Shipped** on an order | Customer |
+| Message received | Someone sends a custom-order enquiry | Customer |
+| New message alert | Someone sends a custom-order enquiry | Owner |
+| Venmo reminder | Owner taps **Send reminder** on an unpaid Venmo order | Customer |
 
-Sent through [Resend](https://resend.com). Set `RESEND_API_KEY` and
+The friendly wording in the confirmation and the custom-order reply is
+editable at `/admin/content` (**Emails**), stored in site settings, with a
+live preview. Only the wording: order numbers, items, totals, the address,
+and the Venmo instructions are always generated, so nothing she types can
+leave a customer without the facts.
+
+The Venmo reminder is a button rather than a timer on purpose: only the
+owner knows whether a nudge is welcome, and an automated chaser reads badly
+from a one-person shop.
+
+Sent through [Brevo](https://brevo.com). Set `BREVO_API_KEY` and
 `EMAIL_FROM` to switch them on; leave either blank and every send quietly
 no-ops, so the site runs fine without them. Sending failures are logged and
 swallowed — **an email must never fail an order**.
 
-At launch, the Resend account is created in the owner's name (like Supabase
-and Stripe), and `EMAIL_FROM` moves from Resend's test sender to a verified
-address on the real domain.
+Brevo rather than Resend because the domain is registered at Wix, whose DNS
+can't create an MX record on a subdomain — which is what Resend needs to
+verify a domain. Brevo verifies with TXT/CNAME only. Its free tier is 300
+emails/day with no expiry, well above this shop's volume.
+
+At launch, the Brevo account is created in the owner's name (like Supabase
+and Stripe), and `EMAIL_FROM` uses a verified address on the real domain.
 
 ## Project layout
 
