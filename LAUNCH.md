@@ -121,6 +121,16 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 9. [ ] ⏳ Verify `piecesbyp.com` in Brevo — add the TXT/CNAME records it gives you
         at **Wix**, not Netlify. TXT and CNAME only, so Wix DNS can do it;
         that is why this is Brevo and not Resend. Propagation can take hours.
+9b. [ ] Put `BREVO_API_KEY` and `EMAIL_FROM` into Netlify, then redeploy
+9c. [ ] Point **Supabase Auth at Brevo's SMTP** (Authentication → Emails → SMTP
+        Settings). Supabase's built-in sender is rate-limited to a couple of
+        emails an hour and is explicitly not for production — leave it and the
+        password-reset email may simply never arrive. Different credential from
+        the API key: Brevo's SMTP page gives a login and an SMTP key.
+9d. [ ] Add `https://piecesbyp.com/admin/auth/callback` to Supabase →
+        Authentication → URL Configuration → Redirect URLs. Without it Supabase
+        silently ignores where the reset link should land and drops her on the
+        home page instead.
 10. [x] Polly creates Netlify account
 11. [x] Jack deploys, sets all environment variables in Netlify
 12. [x] Point the domain at Netlify
@@ -279,9 +289,18 @@ without them — so this can be done after launch if the DNS is being slow.
 8. Confirm with `npm run check:supabase` — it reports the send-from address
    when both are set, and warns when they aren't.
 
-**D. Check it actually sends**
+**D. Decide where replies go**
 
-9. Place a test order and confirm the confirmation email arrives. Check the
+`orders@piecesbyp.com` does not need to be a real mailbox for Brevo to
+*send* from it. But a customer who hits Reply on a confirmation will write
+to it — and if no mailbox exists, that reply bounces and Polly never learns
+it was sent. Either set up that mailbox, or say the word and the customer
+emails can carry a Reply-To pointing at an inbox she actually reads.
+(The owner-facing emails already reply straight to the customer.)
+
+**E. Check it actually sends**
+
+10. Place a test order and confirm the confirmation email arrives. Check the
    spam folder too: a brand-new sending domain has no reputation yet, and a
    first email sometimes lands there before settling down.
 
