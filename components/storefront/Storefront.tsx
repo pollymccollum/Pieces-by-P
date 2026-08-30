@@ -28,7 +28,6 @@ import type { ShippingInput } from "@/lib/order-utils";
 import { AboutSection } from "./AboutSection";
 import { ContactSection } from "./ContactSection";
 import { Footer } from "./Footer";
-import { BeadDivider } from "./visuals";
 
 function newLineId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -246,19 +245,7 @@ export function Storefront({
         onOpenCart={() => setCartOpen(true)}
       />
 
-      {visible.map((s, i) => (
-        <div key={s.id} style={{ display: "contents" }}>
-          {sectionNode[s.id]}
-          {/* The bead rule sits between the grid and whatever follows it. */}
-          {s.id === "shop" && i < visible.length - 1 && (
-            <div className="pp-dividerband">
-              <div className="pp-wrap">
-                <BeadDivider />
-              </div>
-            </div>
-          )}
-        </div>
-      ))}
+      {visible.map((s) => sectionNode[s.id])}
 
       <Footer brand={settings.brand} location={settings.contact.location} links={navLinks} />
 

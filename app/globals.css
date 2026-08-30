@@ -461,12 +461,6 @@ body {
 .pp-section {
   background: var(--collection);
 }
-/* The bead rule sits between those two sections, outside either of them.
-   Without this it renders as a stripe of page background cutting the band
-   in half, which reads as a bug rather than a divider. */
-.pp-dividerband {
-  background: var(--collection);
-}
 .pp-eyebrow-c {
   text-align: center;
   color: var(--sage-deep);
@@ -1143,20 +1137,6 @@ body {
   font-size: 10.5px;
   color: #847e6e;
   letter-spacing: 0.06em;
-}
-
-.pp-divider {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  justify-content: center;
-  margin: 0 auto;
-  max-width: 420px;
-}
-.pp-rule {
-  height: 1px;
-  flex: 1;
-  background: var(--hair);
 }
 
 @media (max-width: 640px) {

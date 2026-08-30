@@ -1,7 +1,7 @@
 // Pure, stateless visuals ported from pieces-by-p-store.jsx: the circular
-// "P" badge, the beaded-strand SVG used as a product-photo fallback until a
-// real photo is uploaded, and the bead divider rule. No hooks, so these
-// render fine from Server or Client Components alike.
+// "P" badge and the beaded-strand SVG used as a product-photo fallback
+// until a real photo is uploaded. No hooks, so these render fine from
+// Server or Client Components alike.
 
 const GOLD = "#C79A3E";
 const GOLD_HI = "#E6CD86";
@@ -130,22 +130,5 @@ export function BrandMark({
         {brand}
       </span>
     </>
-  );
-}
-
-export function BeadDivider() {
-  const cols = ["#E4573B", "#E7789A", "#3E9DB0", "#E9C85A", "#8FB98F", "#EBA9BE"];
-  return (
-    <div className="pp-divider" role="presentation">
-      <span className="pp-rule" />
-      <svg width="120" height="20" viewBox="0 0 120 20" aria-hidden="true">
-        {Array.from({ length: 15 }).map((_, i) => (
-          <circle key={i} cx={6 + i * 8} cy="7" r="3" fill={cols[i % cols.length]} stroke="rgba(0,0,0,.1)" strokeWidth="0.5" />
-        ))}
-        <line x1="60" y1="10" x2="60" y2="13" stroke={GOLD} strokeWidth="1" />
-        <path d={heartPath(60, 16, 3)} fill={GOLD} stroke={GOLD_HI} strokeWidth="0.5" />
-      </svg>
-      <span className="pp-rule" />
-    </div>
   );
 }
