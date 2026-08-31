@@ -93,15 +93,21 @@ export function ProductModal({
                 </div>
               </div>
             )}
-            <div className="pp-custom">
-              <span className="pp-spec">Make it yours {product.custom ? "" : "(optional)"}</span>
-              <input
-                className="pp-input"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder={product.custom ? "Color swaps, initials, team colors, sizing…" : "Any requests? Colors, length, initials…"}
-              />
-            </div>
+            {/* Only when the owner ticked "make it yours" for this piece.
+                It used to render always, with the flag changing nothing but
+                the wording — so unticking the box in the admin appeared to
+                do nothing at all. */}
+            {product.custom && (
+              <div className="pp-custom">
+                <span className="pp-spec">Make it yours</span>
+                <input
+                  className="pp-input"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Color swaps, initials, team colors, sizing…"
+                />
+              </div>
+            )}
             {st.kind === "low" && (
               <p className="pp-lowstock" style={{ marginTop: 10 }}>
                 Only {st.left} left
