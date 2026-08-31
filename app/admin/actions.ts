@@ -304,6 +304,45 @@ export async function deleteOrder(orderId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
+// Saves where a photo should sit inside its tile.
+//
+// Nothing is done to the uploaded file: these two percentages become CSS
+// object-position, so she can reposition a photo as often as she likes and
+// never lose quality or the original framing.
+export async function setPhotoFocus(
+  imageId: string,
+  x: number,
+  y: number
+): Promise<ActionResult> {
+  await requireOwner();
+
+  // The database has the same check. This one gives a sane number rather
+  // than an error if a rounding slip sends 100.4.
+  const clamp = (n: number) => Math.min(100, Math.max(0, Math.round(Number(n))));
+  if (!Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) {
+    return { ok: false, error: "That isn't a valid position." };
+  }
+
+  const supabase = await getSupabaseAuthClient();
+  const { error } = await supabase
+    .from("product_images")
+    .update({ focal_x: clamp(x), focal_y: clamp(y) })
+    .eq("id", imageId);
+
+  if (error) {
+    if (/focal_x|focal_y/i.test(error.message)) {
+      return {
+        ok: false,
+        error: "Run supabase/add-photo-focus.sql on the project, then try again.",
+      };
+    }
+    return { ok: false, error: error.message };
+  }
+
+  refresh();
+  return { ok: true };
+}
+
 // ── products ────────────────────────────────────────────────
 
 export async function createProduct(): Promise<ActionResult> {
@@ -350,6 +389,10 @@ export async function updateProduct(id: string, formData: FormData): Promise<Act
 
   const tag = String(formData.get("tag") ?? "").trim();
   const charm = String(formData.get("charm") ?? "").trim();
+  // Only stored for the lettered charm. Clearing it when the shape is
+  // something else stops a stale word reappearing if she switches back.
+  const charmText =
+    charm === "text" ? String(formData.get("charmText") ?? "").trim().slice(0, 12) : "";
 
   // Unticked "limited quantity" means made to order: stock stays null and the
   // piece never sells out. Ticked means the number is authoritative.
@@ -374,6 +417,7 @@ export async function updateProduct(id: string, formData: FormData): Promise<Act
       description: String(formData.get("description") ?? ""),
       tag: tag === "" ? null : tag,
       charm: charm === "" ? null : charm,
+      charm_text: charmText === "" ? null : charmText,
       custom: formData.get("custom") === "on",
       stock,
       active: formData.get("active") === "on",

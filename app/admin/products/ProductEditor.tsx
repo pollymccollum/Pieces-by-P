@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import type { Product } from "@/lib/types";
+import { PHOTO_SHAPES, type PhotoShape, type Product } from "@/lib/types";
 import { StrandArt } from "@/components/storefront/visuals";
+import { PhotoPositioner } from "./PhotoPositioner";
 import {
   deleteProduct,
   deleteProductPhoto,
@@ -14,10 +15,12 @@ import {
 export function ProductEditor({
   product,
   categories,
+  photoShape,
   onClose,
 }: {
   product: Product;
   categories: string[];
+  photoShape: PhotoShape;
   onClose: () => void;
 }) {
   const [pending, start] = useTransition();
@@ -26,6 +29,13 @@ export function ProductEditor({
   const [tracksStock, setTracksStock] = useState(product.stock !== null);
   const [stockValue, setStockValue] = useState(product.stock ?? 0);
   const fileRef = useRef<HTMLInputElement>(null);
+  // Which photo is open for repositioning. One at a time keeps the
+  // preview big enough to drag accurately.
+  const [positioningId, setPositioningId] = useState<string | null>(null);
+  // Controlled so the wording box can appear the moment she picks
+  // the lettered charm.
+  const [charm, setCharm] = useState(product.charm ?? "");
+  const [charmText, setCharmText] = useState(product.charm_text ?? "");
 
   const save = (formData: FormData) => {
     setError(null);
@@ -82,6 +92,19 @@ export function ProductEditor({
                   >
                     ×
                   </button>
+                  {/* Opens the positioner. Sits on the photo itself so
+                      it's obvious which one it will move. */}
+                  <button
+                    type="button"
+                    className="ad-pos"
+                    title="Choose what shows in the shop"
+                    disabled={pending}
+                    onClick={() =>
+                      setPositioningId((id) => (id === img.id ? null : img.id))
+                    }
+                  >
+                    ⤧
+                  </button>
                   {i === 0 ? (
                     <span className="ad-cover">Cover</span>
                   ) : (
@@ -122,12 +145,24 @@ export function ProductEditor({
               The first photo is the cover shown in the shop. With no photo, the
               beaded illustration below is used instead.
             </p>
+            {positioningId && (
+              <PhotoPositioner
+                key={positioningId}
+                image={
+                  product.images.find((i) => i.id === positioningId) ?? product.images[0]
+                }
+                shapeRatio={PHOTO_SHAPES[photoShape].ratio}
+                onDone={() => setPositioningId(null)}
+              />
+            )}
+
             {product.images.length === 0 && (
               <div style={{ marginTop: 8 }}>
                 <StrandArt
                   category={product.category}
                   colors={product.colors}
-                  charm={product.charm}
+                  charm={charm}
+                  charmText={charmText}
                   size={80}
                 />
               </div>
@@ -184,21 +219,62 @@ export function ProductEditor({
           <div className="ad-grid2">
             <div className="ad-field">
               <span className="ad-lbl">Badge</span>
-              <select className="pp-select" name="tag" defaultValue={product.tag ?? ""}>
-                <option value="">None</option>
-                <option value="New">New</option>
-                <option value="Bestseller">Bestseller</option>
-                <option value="Back in stock">Back in stock</option>
-              </select>
+              {/* Free text, with the old fixed options kept as suggestions.
+                  She knows what her pieces need to say better than a
+                  dropdown written months ago does. */}
+              <input
+                className="pp-input"
+                name="tag"
+                list="pp-badge-ideas"
+                maxLength={24}
+                placeholder="Leave empty for none"
+                defaultValue={product.tag ?? ""}
+              />
+              <datalist id="pp-badge-ideas">
+                <option value="New" />
+                <option value="Bestseller" />
+                <option value="Back in stock" />
+                <option value="Limited" />
+                <option value="One of a kind" />
+                <option value="Made to order" />
+              </datalist>
+              <span className="ad-help">
+                Small label on the photo. Type anything, or pick a suggestion.
+              </span>
             </div>
             <div className="ad-field">
               <span className="ad-lbl">Illustration charm</span>
-              <select className="pp-select" name="charm" defaultValue={product.charm ?? ""}>
+              <select
+                className="pp-select"
+                name="charm"
+                value={charm}
+                onChange={(e) => setCharm(e.target.value)}
+              >
                 <option value="heart">Heart</option>
                 <option value="star">Star</option>
                 <option value="coin">Coin</option>
+                <option value="text">Letters or a word</option>
                 <option value="">None</option>
               </select>
+              {/* Only meaningful for the lettered charm, so it appears
+                  with it rather than sitting there confusing her. */}
+              {charm === "text" && (
+                <>
+                  <input
+                    className="pp-input"
+                    name="charmText"
+                    maxLength={12}
+                    placeholder="e.g. P, love, 2026"
+                    value={charmText}
+                    onChange={(e) => setCharmText(e.target.value)}
+                    style={{ marginTop: 6 }}
+                  />
+                  <span className="ad-help">
+                    Shown on a gold charm in the drawing. One to four letters
+                    looks best.
+                  </span>
+                </>
+              )}
             </div>
           </div>
 

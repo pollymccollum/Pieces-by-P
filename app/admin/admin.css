@@ -895,6 +895,61 @@
   opacity: 0.6;
   cursor: wait;
 }
+/* Photo positioning. The frame is the real tile shape, so what she drags
+   into view is exactly what the shop grid will show. */
+.ad-pos {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(43, 42, 36, 0.78);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1;
+}
+.ad-pos:disabled {
+  opacity: 0.4;
+}
+.ad-poswrap {
+  margin-top: 12px;
+  padding: 14px;
+  background: var(--cream);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+}
+.ad-posframe {
+  position: relative;
+  width: 100%;
+  max-width: 260px;
+  overflow: hidden;
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.ad-posframe:active {
+  cursor: grabbing;
+}
+.ad-posframe img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.ad-posbtns {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
 .ad-mailprev {
   margin-top: 18px;
   background: var(--cream);

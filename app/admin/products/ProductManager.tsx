@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import type { Product } from "@/lib/types";
+import type { PhotoShape, Product } from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "@/components/storefront/visuals";
 import { createProduct, moveProduct } from "../actions";
@@ -10,9 +10,11 @@ import { ProductEditor } from "./ProductEditor";
 export function ProductManager({
   products,
   categories,
+  photoShape,
 }: {
   products: Product[];
   categories: string[];
+  photoShape: PhotoShape;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,13 @@ export function ProductManager({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.images[0].url} alt="" />
                 ) : (
-                  <StrandArt category={p.category} colors={p.colors} charm={p.charm} size={48} />
+                  <StrandArt
+                    category={p.category}
+                    colors={p.colors}
+                    charm={p.charm}
+                    charmText={p.charm_text}
+                    size={48}
+                  />
                 )}
               </div>
 
@@ -126,6 +134,7 @@ export function ProductManager({
         <ProductEditor
           product={editing}
           categories={categories}
+          photoShape={photoShape}
           onClose={() => setEditingId(null)}
         />
       )}

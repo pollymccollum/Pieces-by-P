@@ -15,7 +15,11 @@ export default async function ProductsPage() {
 
   return (
     <AdminChrome>
-      <ProductManager products={products} categories={settings.categories} />
+      <ProductManager
+        products={products}
+        categories={settings.categories}
+        photoShape={settings.photoShape}
+      />
     </AdminChrome>
   );
 }

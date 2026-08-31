@@ -107,9 +107,10 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 
 3. [x] Polly creates a GitHub account; transfer the repo to her, add Jack as collaborator
 4. [x] Polly creates Supabase project (free tier)
-5. [x] Jack runs these seven in the Supabase SQL Editor, **in this order**:
+5. [x] Jack runs these nine in the Supabase SQL Editor, **in this order**:
        `schema.sql` → `rls.sql` → `storage.sql` → `layout-settings.sql` →
-       `add-stock.sql` → `add-order-delete.sql` → `add-order-archive.sql`
+       `add-stock.sql` → `add-order-delete.sql` → `add-order-archive.sql` →
+       `add-photo-focus.sql` → `add-charm-text.sql`
        - **Do not run** `seed.sql` or `seed-orders.sql` — fake pieces and fake
          customers, dev only.
        - **Do not run** `add-contact-fields.sql` — it only patches projects
@@ -219,6 +220,8 @@ files contain `drop table` or `delete from`.
 | 5 | `add-stock.sql` | Stock functions — **required**, see below |
 | 6 | `add-order-delete.sql` | Lets the owner delete an order from the admin |
 | 7 | `add-order-archive.sql` | Lets the owner clear a finished order off the board |
+| 8 | `add-photo-focus.sql` | Per-photo crop position, so she frames each tile herself |
+| 9 | `add-charm-text.sql` | Wording for the lettered illustration charm |
 
 **Do NOT run:**
 

@@ -6,7 +6,23 @@ export type ProductImage = {
   id: string;
   url: string;
   sort_order: number;
+  // Which part of the photo must stay visible when a tile crops it,
+  // in percent. 50/50 is centre. Feeds CSS object-position, so the
+  // uploaded file is never altered.
+  focal_x: number;
+  focal_y: number;
 };
+
+// `object-position` value for a photo. Kept in one place so the tile,
+// the modal, and the admin preview can never drift apart.
+export function focalPosition(img?: {
+  focal_x?: number | null;
+  focal_y?: number | null;
+}): string {
+  const x = typeof img?.focal_x === "number" ? img.focal_x : 50;
+  const y = typeof img?.focal_y === "number" ? img.focal_y : 50;
+  return `${x}% ${y}%`;
+}
 
 export type Product = {
   id: string;
@@ -16,7 +32,9 @@ export type Product = {
   material: string;
   description: string;
   tag: string | null;
-  charm: string | null; // 'heart' | 'star' | 'coin' | null
+  charm: string | null; // 'heart' | 'star' | 'coin' | 'text' | null
+  // Wording on the charm when charm === 'text'. Ignored otherwise.
+  charm_text: string | null;
   colors: string[]; // fallback bead colors when no photo
   custom: boolean; // show "make it yours" field
   // null = made to order, unlimited (the default). 0 = sold out. N = N left.

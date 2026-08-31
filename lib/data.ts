@@ -94,7 +94,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
 }
 
 const PRODUCT_COLUMNS =
-  "id, name, category, price_cents, material, description, tag, charm, colors, custom, stock, active, sort_order, product_images(id, url, sort_order)";
+  "id, name, category, price_cents, material, description, tag, charm, charm_text, colors, custom, stock, active, sort_order, product_images(id, url, sort_order, focal_x, focal_y)";
 
 type ProductRow = {
   id: string;
@@ -105,12 +105,21 @@ type ProductRow = {
   description: string | null;
   tag: string | null;
   charm: string | null;
+  charm_text: string | null;
   colors: unknown;
   custom: boolean;
   stock: number | null;
   active: boolean;
   sort_order: number;
-  product_images: { id: string; url: string; sort_order: number }[] | null;
+  product_images:
+    | {
+        id: string;
+        url: string;
+        sort_order: number;
+        focal_x: number | null;
+        focal_y: number | null;
+      }[]
+    | null;
 };
 
 function toProduct(p: ProductRow): Product {
@@ -123,13 +132,19 @@ function toProduct(p: ProductRow): Product {
     description: p.description ?? "",
     tag: p.tag,
     charm: p.charm,
+    charm_text: p.charm_text ?? null,
     colors: Array.isArray(p.colors) ? (p.colors as string[]) : [],
     custom: p.custom,
     stock: p.stock,
     active: p.active,
     sort_order: p.sort_order,
     // First image is the cover.
-    images: (p.product_images ?? []).slice().sort((a, b) => a.sort_order - b.sort_order),
+    images: (p.product_images ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+      // Older rows predate the focal columns; centre matches how they
+      // have always rendered.
+      .map((i) => ({ ...i, focal_x: i.focal_x ?? 50, focal_y: i.focal_y ?? 50 })),
   };
 }
 

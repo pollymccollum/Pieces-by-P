@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { remainingFor, stockState, type Product } from "@/lib/types";
+import { focalPosition, remainingFor, stockState, type Product } from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "./visuals";
 
@@ -20,7 +20,7 @@ export function ProductModal({
   const [note, setNote] = useState("");
   const [gIdx, setGIdx] = useState(0);
 
-  const imgs = product.images.map((i) => i.url);
+  const imgs = product.images;
   const mainImg = imgs[gIdx] || imgs[0] || null;
 
   const st = stockState(product.stock);
@@ -39,17 +39,32 @@ export function ProductModal({
             <div className="pp-gmain">
               {mainImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={mainImg} alt={product.name} className="pp-photo" />
+                <img
+                  src={mainImg.url}
+                  alt={product.name}
+                  className="pp-photo"
+                  style={{ objectPosition: focalPosition(mainImg) }}
+                />
               ) : (
-                <StrandArt category={product.category} colors={product.colors} charm={product.charm} size={200} />
+                <StrandArt
+                  category={product.category}
+                  colors={product.colors}
+                  charm={product.charm}
+                  charmText={product.charm_text}
+                  size={200}
+                />
               )}
             </div>
             {imgs.length > 1 && (
               <div className="pp-thumbs">
-                {imgs.map((src, i) => (
-                  <button key={src} className={`pp-thumb ${gIdx === i ? "on" : ""}`} onClick={() => setGIdx(i)}>
+                {imgs.map((img, i) => (
+                  <button
+                    key={img.id}
+                    className={`pp-thumb ${gIdx === i ? "on" : ""}`}
+                    onClick={() => setGIdx(i)}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" />
+                    <img src={img.url} alt="" style={{ objectPosition: focalPosition(img) }} />
                   </button>
                 ))}
               </div>

@@ -21,7 +21,57 @@ function starPath(x: number, y: number, r: number) {
   return d + "Z";
 }
 
-function Charm({ type, x, y, s }: { type: string | null; x: number; y: number; s: number }) {
+function Charm({
+  type,
+  text,
+  x,
+  y,
+  s,
+}: {
+  type: string | null;
+  text?: string | null;
+  x: number;
+  y: number;
+  s: number;
+}) {
+  // Owner-written wording on a gold tag. The charm grows with the text
+  // and the letters shrink, so "P" and "handmade" both stay legible
+  // instead of one overflowing and the other floating in space.
+  if (type === "text") {
+    const label = (text ?? "").trim();
+    if (!label) return null;
+
+    const w = Math.max(s * 2.1, s * 0.95 * label.length + s * 1.1);
+    const h = s * 2;
+    const fontSize = Math.min(s * 1.5, (w - s * 0.9) / (label.length * 0.62));
+
+    return (
+      <g>
+        <rect
+          x={x - w / 2}
+          y={y - h / 2}
+          width={w}
+          height={h}
+          rx={h / 2}
+          fill={GOLD}
+          stroke={GOLD_HI}
+          strokeWidth="0.6"
+        />
+        <text
+          x={x}
+          y={y}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={fontSize}
+          fontFamily="Georgia, serif"
+          fill="#FFFDF7"
+          style={{ letterSpacing: "0.04em" }}
+        >
+          {label}
+        </text>
+      </g>
+    );
+  }
   if (type === "heart") return <path d={heartPath(x, y, s)} fill={GOLD} stroke={GOLD_HI} strokeWidth="0.5" />;
   if (type === "star") return <path d={starPath(x, y, s * 1.2)} fill={GOLD} stroke={GOLD_HI} strokeWidth="0.5" />;
   if (type === "coin")
@@ -38,11 +88,13 @@ export function StrandArt({
   category,
   colors,
   charm,
+  charmText,
   size = 96,
 }: {
   category: string;
   colors: string[];
   charm: string | null;
+  charmText?: string | null;
   size?: number;
 }) {
   const safeColors = colors && colors.length ? colors : ["#E4573B", "#E7789A", "#3E9DB0", "#E9C85A"];
@@ -89,7 +141,7 @@ export function StrandArt({
     <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden="true">
       {beads}
       {charm && <line x1={cx} y1={bottomY} x2={cx} y2={charmY - charmS} stroke={GOLD} strokeWidth="0.8" />}
-      {charm && <Charm type={charm} x={cx} y={charmY} s={charmS} />}
+      {charm && <Charm type={charm} text={charmText} x={cx} y={charmY} s={charmS} />}
     </svg>
   );
 }
