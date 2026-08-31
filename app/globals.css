@@ -22,8 +22,8 @@
   --hair: #e7e0cd;
   /* Owner's chosen palette (Aug 2026). Kept as named roles so a future
      change is one line here rather than a hunt through the file. */
-  --band: #c3d696; /* announcement bar + contact band */
-  --collection: #f2f0e2; /* the shop grid's background */
+  --band: #e1f1b9; /* announcement bar + contact band */
+  --collection: #fffdf3; /* the shop grid's background */
   --btn-deep: #333c2f; /* send message button */
   --serif: var(--font-fraunces), Georgia, serif;
   --script: var(--font-dancing), cursive;
