@@ -291,7 +291,11 @@ body {
   grid-template-columns: 1fr;
   gap: 0;
   border-bottom: 1px solid var(--hair);
-  background: linear-gradient(180deg, var(--cream), var(--cream2));
+  /* Same colour as the collection below, so hero text, shop grid, and About
+     read as one continuous band. This also fills the gaps beside a collage
+     set to "show the whole photo" — letterboxing on a different colour would
+     have drawn a seam around it. */
+  background: var(--collection);
 }
 /* Off-screen but readable by screen readers and search engines. Used for
    the hero headline when the owner picks the image-only layout. */
