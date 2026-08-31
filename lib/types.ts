@@ -235,10 +235,13 @@ export const HERO_LAYOUTS = {
 export type HeroLayout = keyof typeof HERO_LAYOUTS;
 
 // Hero banner height, phone / desktop.
+// Two heights each: the first applies on phones, the second from tablet up.
+// Nudged up ~10% in Aug 2026 — the owner wanted her collage a little taller
+// without jumping a whole preset, since the gap between these is wide.
 export const HERO_SIZES = {
-  short: { label: "Short", heights: ["200px", "260px"] },
-  medium: { label: "Medium", heights: ["270px", "340px"] },
-  tall: { label: "Tall", heights: ["340px", "460px"] },
+  short: { label: "Short", heights: ["220px", "285px"] },
+  medium: { label: "Medium", heights: ["300px", "375px"] },
+  tall: { label: "Tall", heights: ["375px", "500px"] },
 } as const;
 export type HeroSize = keyof typeof HERO_SIZES;
 

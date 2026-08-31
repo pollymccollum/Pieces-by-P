@@ -313,7 +313,7 @@ body {
 }
 .pp-hero.layout-image .pp-hero-art {
   padding: 0;
-  min-height: var(--hero-h-sm, 270px);
+  min-height: var(--hero-h-sm, 300px);
 }
 .pp-hero.layout-image .pp-hero-art .pp-photo {
   position: absolute;
@@ -329,7 +329,7 @@ body {
 .pp-hero.layout-top .pp-hero-art {
   order: -1;
   padding: 0;
-  min-height: var(--hero-h-sm, 270px);
+  min-height: var(--hero-h-sm, 300px);
 }
 .pp-hero.layout-top .pp-hero-art .pp-photo {
   position: absolute;
@@ -350,7 +350,7 @@ body {
 .pp-hero.layout-band .pp-hero-art .pp-photo {
   position: relative;
   inset: auto;
-  max-height: var(--hero-h-lg, 340px);
+  max-height: var(--hero-h-lg, 375px);
   margin: 0 auto;
   width: auto;
   max-width: min(1180px, 100%);
@@ -384,7 +384,7 @@ body {
 .pp-hero.layout-background .pp-hero-copy {
   position: relative;
   z-index: 1;
-  min-height: var(--hero-h-sm, 270px);
+  min-height: var(--hero-h-sm, 300px);
 }
 
 .pp-hero-copy {
@@ -422,7 +422,7 @@ body {
   font-size: 15px;
 }
 .pp-hero-art {
-  min-height: var(--hero-h-sm, 270px);
+  min-height: var(--hero-h-sm, 300px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1161,19 +1161,19 @@ body {
     grid-template-columns: 1fr;
   }
   .pp-hero.layout-image .pp-hero-art {
-    min-height: var(--hero-h-lg, 340px);
+    min-height: var(--hero-h-lg, 375px);
   }
   .pp-hero.layout-top .pp-hero-art {
-    min-height: var(--hero-h-lg, 340px);
+    min-height: var(--hero-h-lg, 375px);
   }
   .pp-hero.layout-background .pp-hero-copy {
-    min-height: var(--hero-h-lg, 340px);
+    min-height: var(--hero-h-lg, 375px);
   }
   .pp-hero-copy {
     padding: 66px 42px;
   }
   .pp-hero-art {
-    min-height: var(--hero-h-lg, 340px);
+    min-height: var(--hero-h-lg, 375px);
   }
   .pp-modal-grid {
     grid-template-columns: 1fr 1fr;
