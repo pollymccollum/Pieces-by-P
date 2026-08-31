@@ -312,25 +312,27 @@ export async function deleteOrder(orderId: string): Promise<ActionResult> {
 export async function setPhotoFocus(
   imageId: string,
   x: number,
-  y: number
+  y: number,
+  zoom: number
 ): Promise<ActionResult> {
   await requireOwner();
 
   // The database has the same check. This one gives a sane number rather
   // than an error if a rounding slip sends 100.4.
   const clamp = (n: number) => Math.min(100, Math.max(0, Math.round(Number(n))));
-  if (!Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) {
+  const clampZoom = (n: number) => Math.min(300, Math.max(100, Math.round(Number(n))));
+  if (!Number.isFinite(Number(x)) || !Number.isFinite(Number(y)) || !Number.isFinite(Number(zoom))) {
     return { ok: false, error: "That isn't a valid position." };
   }
 
   const supabase = await getSupabaseAuthClient();
   const { error } = await supabase
     .from("product_images")
-    .update({ focal_x: clamp(x), focal_y: clamp(y) })
+    .update({ focal_x: clamp(x), focal_y: clamp(y), zoom: clampZoom(zoom) })
     .eq("id", imageId);
 
   if (error) {
-    if (/focal_x|focal_y/i.test(error.message)) {
+    if (/focal_x|focal_y|zoom/i.test(error.message)) {
       return {
         ok: false,
         error: "Run supabase/add-photo-focus.sql on the project, then try again.",

@@ -943,6 +943,16 @@
   display: block;
   pointer-events: none;
 }
+.ad-poszoom {
+  display: block;
+  margin-top: 12px;
+  max-width: 260px;
+}
+.ad-poszoom input[type='range'] {
+  width: 100%;
+  margin-top: 6px;
+  accent-color: var(--sage-deep);
+}
 .ad-posbtns {
   display: flex;
   align-items: center;

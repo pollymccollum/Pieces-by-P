@@ -11,17 +11,41 @@ export type ProductImage = {
   // uploaded file is never altered.
   focal_x: number;
   focal_y: number;
+  // Percent. 100 = the photo exactly fills the tile.
+  zoom: number;
 };
 
-// `object-position` value for a photo. Kept in one place so the tile,
-// the modal, and the admin preview can never drift apart.
-export function focalPosition(img?: {
+// How a photo sits inside its tile. Kept in one place so the shop grid,
+// the product modal, and the admin preview can never drift apart — the
+// whole point of the positioner is that what she sees is what ships.
+//
+// Two mechanisms, because one can't do both jobs:
+//
+//   objectPosition picks which part survives the tile's own crop. On a
+//   portrait photo in a square tile that is the vertical crop only —
+//   the photo is already exactly as wide as the frame, so there is
+//   nothing hidden left or right to slide into view.
+//
+//   scale() is what creates room to move on BOTH axes, and anchoring
+//   transform-origin to the same focal point means zooming in keeps
+//   the chosen spot still instead of drifting toward the middle.
+export function focalStyle(img?: {
   focal_x?: number | null;
   focal_y?: number | null;
-}): string {
+  zoom?: number | null;
+}): React.CSSProperties {
   const x = typeof img?.focal_x === "number" ? img.focal_x : 50;
   const y = typeof img?.focal_y === "number" ? img.focal_y : 50;
-  return `${x}% ${y}%`;
+  const z = typeof img?.zoom === "number" && img.zoom > 0 ? img.zoom : 100;
+
+  return {
+    objectPosition: `${x}% ${y}%`,
+    // Omitted at 100 so the overwhelmingly common case creates no
+    // compositing layer at all.
+    ...(z === 100
+      ? {}
+      : { transform: `scale(${z / 100})`, transformOrigin: `${x}% ${y}%` }),
+  };
 }
 
 export type Product = {

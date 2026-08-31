@@ -94,7 +94,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
 }
 
 const PRODUCT_COLUMNS =
-  "id, name, category, price_cents, material, description, tag, charm, charm_text, colors, custom, stock, active, sort_order, product_images(id, url, sort_order, focal_x, focal_y)";
+  "id, name, category, price_cents, material, description, tag, charm, charm_text, colors, custom, stock, active, sort_order, product_images(id, url, sort_order, focal_x, focal_y, zoom)";
 
 type ProductRow = {
   id: string;
@@ -118,6 +118,7 @@ type ProductRow = {
         sort_order: number;
         focal_x: number | null;
         focal_y: number | null;
+        zoom: number | null;
       }[]
     | null;
 };
@@ -144,7 +145,12 @@ function toProduct(p: ProductRow): Product {
       .sort((a, b) => a.sort_order - b.sort_order)
       // Older rows predate the focal columns; centre matches how they
       // have always rendered.
-      .map((i) => ({ ...i, focal_x: i.focal_x ?? 50, focal_y: i.focal_y ?? 50 })),
+      .map((i) => ({
+        ...i,
+        focal_x: i.focal_x ?? 50,
+        focal_y: i.focal_y ?? 50,
+        zoom: i.zoom ?? 100,
+      })),
   };
 }
 

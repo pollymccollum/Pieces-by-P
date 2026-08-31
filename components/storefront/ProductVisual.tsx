@@ -1,4 +1,4 @@
-import { focalPosition, type Product } from "@/lib/types";
+import { focalStyle, type Product } from "@/lib/types";
 import { StrandArt } from "./visuals";
 
 // Cover photo (first uploaded product_images row) if there is one,
@@ -17,7 +17,7 @@ export function ProductVisual({ product, size }: { product: Product; size: numbe
         src={cover.url}
         alt={product.name}
         className="pp-photo"
-        style={{ objectPosition: focalPosition(cover) }}
+        style={focalStyle(cover)}
       />
     );
   }

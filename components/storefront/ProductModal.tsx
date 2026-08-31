@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { focalPosition, remainingFor, stockState, type Product } from "@/lib/types";
+import { focalStyle, remainingFor, stockState, type Product } from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "./visuals";
 
@@ -43,7 +43,7 @@ export function ProductModal({
                   src={mainImg.url}
                   alt={product.name}
                   className="pp-photo"
-                  style={{ objectPosition: focalPosition(mainImg) }}
+                  style={focalStyle(mainImg)}
                 />
               ) : (
                 <StrandArt
@@ -64,7 +64,7 @@ export function ProductModal({
                     onClick={() => setGIdx(i)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.url} alt="" style={{ objectPosition: focalPosition(img) }} />
+                    <img src={img.url} alt="" style={focalStyle(img)} />
                   </button>
                 ))}
               </div>
