@@ -22,6 +22,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   venmoHandle: "",
   categories: ["Necklaces", "Bracelets", "Chokers", "Charms"],
   heroImageUrl: null,
+  aboutImageUrl: null,
   logoUrl: null,
   logoHeight: 40,
   fonts: {},
@@ -35,8 +36,6 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   sections: [
     { id: "hero", show: true },
     { id: "shop", show: true },
-    { id: "about", show: true },
-    { id: "contact", show: true },
   ],
   hero: {
     eyebrow: "handmade, one at a time",
@@ -49,7 +48,9 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   about: {
     eyebrowScript: "about",
     title: "Made by hand, one piece at a time",
-    body: "Every piece is designed and strung by Polly in small batches. Choose your colors, add an initial or a charm, and each order is made just for you. Handmade to order, so most pieces ship within about a week.",
+    body: "Every piece is designed and strung by Polly in small batches. Choose your colors, add an initial or a charm, and each order is made just for you. Handmade to order, so most pieces ship within about a week." +
+      String.fromCharCode(10, 10) +
+      "This is your About page — rewrite it in your own words in the admin. Tell people who you are, what your brand is about, and how you started. Leave a blank line between paragraphs.",
   },
   emails: {
     confirmationNote: "Each piece is handmade to order and ships in about a week.",

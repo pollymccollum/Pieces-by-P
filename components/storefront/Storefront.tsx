@@ -1,14 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
-  ACCENTS,
-  GRID_SIZES,
-  HERO_SIZES,
-  PHOTO_SHAPES,
   remainingFor,
   SECTION_IDS,
-  type CartItem,
   type CartLine,
   type Product,
   type SectionId,
@@ -22,12 +18,12 @@ import { ProductModal } from "./ProductModal";
 import { CartDrawer } from "./CartDrawer";
 import { CheckoutView } from "./CheckoutView";
 import { fontStyle } from "@/lib/fonts";
+import { storefrontStyle } from "@/lib/storefront-style";
 import { OrderConfirmation } from "./OrderConfirmation";
 import type { PlacedOrder } from "@/app/actions/place-order";
 import type { ShippingInput } from "@/lib/order-utils";
-import { AboutSection } from "./AboutSection";
-import { ContactSection } from "./ContactSection";
 import { Footer } from "./Footer";
+import { useCart } from "./useCart";
 
 function newLineId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -56,8 +52,15 @@ export function Storefront({
 }) {
   const [category, setCategory] = useState("All");
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [cartOpen, setCartOpen] = useState(false);
+  // Persisted in the browser, not in this component: About and Contact are
+  // their own routes now, and a cart that emptied itself when someone read
+  // her story would quietly cost sales.
+  const { cart, setCart } = useCart();
+  // The header on About and Contact can't price a cart, so its Cart button
+  // links here with ?cart=1. Read as the initial value rather than in an
+  // effect, so the drawer is open on the first paint instead of flashing shut.
+  const search = useSearchParams();
+  const [cartOpen, setCartOpen] = useState(() => search.get("cart") === "1");
   const [view, setView] = useState<"shop" | "checkout" | "confirmed">("shop");
   const [placed, setPlaced] = useState<{ order: PlacedOrder; ship: ShippingInput } | null>(null);
 
@@ -79,29 +82,7 @@ export function Storefront({
   // The owner's appearance settings, expressed as CSS custom properties on
   // the storefront root. globals.css reads these with the original design as
   // fallbacks, so an unsaved or partial settings row still renders correctly.
-  const rootStyle = useMemo(() => {
-    const grid = GRID_SIZES[settings.gridSize] ?? GRID_SIZES.medium;
-    const hero = HERO_SIZES[settings.heroSize] ?? HERO_SIZES.medium;
-    const shape = PHOTO_SHAPES[settings.photoShape] ?? PHOTO_SHAPES.square;
-    const accent = ACCENTS[settings.accent] ?? ACCENTS.coral;
-
-    return {
-      "--coral": accent.hex,
-      "--tile-ratio": shape.ratio,
-      "--photo-fit": settings.photoFit === "contain" ? "contain" : "cover",
-      "--cols-sm": grid.cols[0],
-      "--cols-md": grid.cols[1],
-      "--cols-lg": grid.cols[2],
-      "--hero-h-sm": hero.heights[0],
-      "--hero-h-lg": hero.heights[1],
-    } as React.CSSProperties;
-  }, [
-    settings.accent,
-    settings.gridSize,
-    settings.heroSize,
-    settings.photoShape,
-    settings.photoFit,
-  ]);
+  const rootStyle = storefrontStyle(settings);
 
   const cartCount = cart.reduce((s, l) => s + l.qty, 0);
   const subtotalCents = cartLines.reduce((s, l) => s + l.product.price_cents * l.qty, 0);
@@ -212,22 +193,9 @@ export function Storefront({
         onSelectProduct={(id) => setActiveId(id)}
       />
     ),
-    about: <AboutSection key="about" about={settings.about} fonts={settings.fonts} />,
-    contact: <ContactSection key="contact" contact={settings.contact} fonts={settings.fonts} />,
   };
 
   const visible = sections.filter((s) => s.show);
-
-  // Only link to sections that are actually on the page, in page order.
-  // The hero has no anchor of its own — the wordmark scrolls to the top.
-  const NAV_LABELS: Partial<Record<SectionId, string>> = {
-    shop: "Shop",
-    about: "About",
-    contact: "Contact",
-  };
-  const navLinks = visible
-    .filter((s) => NAV_LABELS[s.id])
-    .map((s) => ({ id: s.id, label: NAV_LABELS[s.id]! }));
 
   return (
     <div className="pp-root" style={rootStyle}>
@@ -241,13 +209,12 @@ export function Storefront({
         logoHeight={settings.logoHeight}
         brandFont={fontStyle(settings.fonts, "brand")}
         cartCount={cartCount}
-        links={navLinks}
         onOpenCart={() => setCartOpen(true)}
       />
 
       {visible.map((s) => sectionNode[s.id])}
 
-      <Footer brand={settings.brand} location={settings.contact.location} links={navLinks} />
+      <Footer brand={settings.brand} location={settings.contact.location} />
 
       {activeProduct && (
         <ProductModal

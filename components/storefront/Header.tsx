@@ -1,6 +1,17 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BrandMark } from "./visuals";
+
+export type NavLink = { href: string; label: string };
+
+// Shop lives on the home page; About and Contact are their own routes.
+export const NAV_LINKS: NavLink[] = [
+  { href: "/", label: "Shop" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
 
 export function Header({
   brand,
@@ -8,7 +19,6 @@ export function Header({
   logoHeight,
   brandFont,
   cartCount,
-  links,
   onOpenCart,
 }: {
   brand: string;
@@ -16,29 +26,66 @@ export function Header({
   logoHeight: number;
   brandFont?: React.CSSProperties;
   cartCount: number;
-  links: { id: string; label: string }[];
-  onOpenCart: () => void;
+  // Only the shop page can show the cart's contents — it's the page that has
+  // the product list to price them against. Everywhere else this is absent
+  // and the button becomes a link home.
+  onOpenCart?: () => void;
 }) {
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const pathname = usePathname();
+  const onHome = pathname === "/";
 
   return (
     <header className="pp-header">
       <div className="pp-wrap pp-headrow">
-        <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-          <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
-        </button>
-        <nav className="pp-nav">
-          {links.map((l) => (
-            <button key={l.id} className="pp-navlink hideM" onClick={() => scrollTo(l.id)}>
-              {l.label}
-            </button>
-          ))}
-          <button className="pp-cartbtn" onClick={onOpenCart}>
-            <span className="pp-navlink" style={{ letterSpacing: ".14em" }}>
-              Cart
-            </span>
-            {cartCount > 0 && <span className="pp-badge-count">{cartCount}</span>}
+        {onHome ? (
+          <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
           </button>
+        ) : (
+          <Link className="pp-brand" href="/">
+            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
+          </Link>
+        )}
+
+        <nav className="pp-nav">
+          {NAV_LINKS.map((l) =>
+            // Already on the shop page, "Shop" should take you to the grid
+            // rather than reload the page you're looking at.
+            l.href === "/" && onHome ? (
+              <button
+                key={l.href}
+                className="pp-navlink hideM"
+                onClick={() => document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })}
+              >
+                {l.label}
+              </button>
+            ) : (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`pp-navlink hideM ${pathname === l.href ? "on" : ""}`}
+              >
+                {l.label}
+              </Link>
+            )
+          )}
+
+          {onOpenCart ? (
+            <button className="pp-cartbtn" onClick={onOpenCart}>
+              <span className="pp-navlink" style={{ letterSpacing: ".14em" }}>
+                Cart
+              </span>
+              {cartCount > 0 && <span className="pp-badge-count">{cartCount}</span>}
+            </button>
+          ) : (
+            // Opens on the shop page, which is where the cart can be priced.
+            <Link className="pp-cartbtn" href="/?cart=1">
+              <span className="pp-navlink" style={{ letterSpacing: ".14em" }}>
+                Cart
+              </span>
+              {cartCount > 0 && <span className="pp-badge-count">{cartCount}</span>}
+            </Link>
+          )}
         </nav>
       </div>
     </header>

@@ -17,15 +17,15 @@ import {
   type SectionId,
   type SiteSettingsData,
 } from "@/lib/types";
-import { saveSettings, uploadHeroPhoto, uploadLogo } from "../actions";
+import { saveSettings, uploadAboutPhoto, uploadHeroPhoto, uploadLogo } from "../actions";
 import { FontPicker } from "./FontPicker";
 import type { FontKey, FontSlot } from "@/lib/fonts";
 
+// About and Contact are their own pages now, so there is nothing here to
+// order or hide — they are always in the nav on every page.
 const SECTION_LABELS: Record<SectionId, string> = {
   hero: "Hero banner",
   shop: "Shop grid",
-  about: "About",
-  contact: "Contact",
 };
 
 // The shop grid is the store itself — reorderable, but not hideable.
@@ -83,6 +83,17 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
     start(async () => {
       const res = await uploadHeroPhoto(fd);
       if (res.ok && res.url) patch({ heroImageUrl: res.url });
+      else if (!res.ok) setError(res.error);
+    });
+  };
+
+  const uploadAbout = (file: File) => {
+    setError(null);
+    const fd = new FormData();
+    fd.set("photo", file);
+    start(async () => {
+      const res = await uploadAboutPhoto(fd);
+      if (res.ok && res.url) patch({ aboutImageUrl: res.url });
       else if (!res.ok) setError(res.error);
     });
   };
@@ -346,7 +357,11 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
 
       {/* ---- about ---- */}
       <div className="ad-card">
-        <p className="ad-sec">About</p>
+        <p className="ad-sec">About page</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          This is its own page now, at <b>/about</b>, linked from the menu at
+          the top and bottom of every page.
+        </p>
         <div className="ad-grid2">
           <div className="ad-field">
             <span className="ad-lbl">Handwritten label</span>
@@ -361,14 +376,56 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </div>
         <div className="ad-field" style={{ marginTop: 12 }}>
           <span className="ad-lbl">Your story</span>
-          <textarea className="pp-textarea" style={{ minHeight: 110 }} value={s.about.body} onChange={(e) => patch({ about: { ...s.about, body: e.target.value } })} />
+          <textarea className="pp-textarea" style={{ minHeight: 200 }} value={s.about.body} onChange={(e) => patch({ about: { ...s.about, body: e.target.value } })} />
+          <span className="ad-help">
+            Who you are, what your brand is about, and how you started. Leave a
+            blank line between paragraphs and they&apos;ll appear as separate
+            paragraphs on the page. Write as much as you like.
+          </span>
           <FontPicker slot="aboutBody" value={s.fonts?.aboutBody} sample={s.about.body} onChange={setFont} />
+        </div>
+
+        <div className="ad-field" style={{ marginTop: 14 }}>
+          <span className="ad-lbl">Photo of you</span>
+          <div className="ad-photos">
+            {s.aboutImageUrl && (
+              <div className="ad-photo">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={s.aboutImageUrl} alt="" />
+                <button type="button" className="rm" title="Remove" onClick={() => patch({ aboutImageUrl: null })}>
+                  ×
+                </button>
+              </div>
+            )}
+            <label className="ad-upload" title="Upload a photo of yourself">
+              +
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                disabled={pending}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) uploadAbout(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          </div>
+          <span className="ad-help">
+            Sits beside your story. A portrait photo works best — roughly
+            800×1000 or larger.
+          </span>
         </div>
       </div>
 
       {/* ---- contact ---- */}
       <div className="ad-card">
-        <p className="ad-sec">Contact</p>
+        <p className="ad-sec">Contact page</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          Its own page at <b>/contact</b>, with your message form. Instagram
+          and email become tappable links.
+        </p>
         <div className="ad-field">
           <span className="ad-lbl">Heading</span>
           <input className="pp-input" value={s.contact.heading} onChange={(e) => patch({ contact: { ...s.contact, heading: e.target.value } })} />

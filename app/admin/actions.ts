@@ -752,6 +752,11 @@ export async function uploadHeroPhoto(formData: FormData) {
   return uploadSiteImage("hero", formData);
 }
 
+// Her own photo, for the About page.
+export async function uploadAboutPhoto(formData: FormData) {
+  return uploadSiteImage("about", formData);
+}
+
 export async function uploadLogo(formData: FormData) {
   return uploadSiteImage("logo", formData);
 }

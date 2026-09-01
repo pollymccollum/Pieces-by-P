@@ -137,6 +137,8 @@ and Stripe), and `EMAIL_FROM` uses a verified address on the real domain.
 
 ```
 app/page.tsx                storefront; server-fetches then renders
+app/about/                  her story + photo, own route
+app/contact/                contact details + message form, own route
 app/admin/                  owner area — login, orders, pieces, content editor
 app/admin/actions.ts        server actions; every one calls requireOwner()
 components/storefront/      the UI, ported from the approved design preview

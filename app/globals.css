@@ -1048,6 +1048,117 @@ body {
   margin: 0 0 8px;
 }
 
+/* ---- About and Contact, now their own routes ----
+   Both sit on the collection colour so the whole site reads as one palette,
+   and both stack on a phone. The About page mirrors the hero: words left,
+   her photo right, with the photo moving above the text on small screens
+   because a face is a better opening than a wall of type. */
+.pp-page {
+  background: var(--collection);
+  border-bottom: 1px solid var(--hair);
+  min-height: 60vh;
+}
+.pp-aboutpage {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+.pp-aboutcopy {
+  padding: 48px 22px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 660px;
+  margin: 0 auto;
+  width: 100%;
+}
+.pp-aboutbody {
+  margin-top: 18px;
+  color: var(--ink-soft);
+  font-size: 15px;
+  line-height: 1.8;
+}
+.pp-aboutbody p {
+  margin: 0 0 15px;
+}
+.pp-aboutbody p:last-child {
+  margin-bottom: 0;
+}
+.pp-aboutcta {
+  align-self: flex-start;
+  margin-top: 26px;
+  text-decoration: none;
+}
+.pp-aboutart {
+  position: relative;
+  order: -1;
+  min-height: 320px;
+  background: var(--cream2);
+}
+.pp-aboutart .pp-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pp-aboutplaceholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(180deg, var(--cream), var(--cream2));
+}
+
+/* Contact page */
+.pp-contactpage {
+  padding-bottom: 20px;
+}
+.pp-contactintro {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 48px 22px 0;
+}
+.pp-contactlist {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.pp-contactlist > div {
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hair);
+}
+.pp-contactlist > div:last-child {
+  border-bottom: none;
+}
+.pp-contactlist dt {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sage-deep);
+}
+.pp-contactlist dd {
+  margin: 3px 0 0;
+  color: var(--ink);
+}
+.pp-contactlist dd a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.pp-contactlist dd a:hover {
+  color: var(--sage-deep);
+}
+/* The contact form's Send button, same deep green as on the old band. */
+.pp-contactpage .pp-btn.sage {
+  background: var(--btn-deep);
+  border-color: var(--btn-deep);
+  color: #fff;
+}
+
 .pp-contact {
   background: var(--band);
   border-top: 1px solid var(--hair);
@@ -1192,6 +1303,19 @@ body {
   .pp-contact-grid {
     grid-template-columns: 1fr 1fr;
     align-items: center;
+  }
+  .pp-aboutpage {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  .pp-aboutart {
+    order: 0;
+    min-height: 520px;
+  }
+  .pp-aboutcopy {
+    padding: 66px 42px;
+  }
+  .pp-contactintro {
+    padding: 66px 42px 0;
   }
   .pp-frow {
     flex-direction: row;

@@ -213,7 +213,12 @@ export type Order = {
 
 // Page sections Polly can show/hide and reorder from the site editor.
 // 'shop' is deliberately not hideable (it's a store) but can be moved.
-export const SECTION_IDS = ["hero", "shop", "about", "contact"] as const;
+//
+// About and Contact used to be here. They are their own routes now, so
+// there is nothing to order or hide — every page always has them in the
+// nav. resolveSections filters unknown ids, so a settings row still
+// listing them is harmless.
+export const SECTION_IDS = ["hero", "shop"] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 
 export type SectionSetting = {
@@ -307,6 +312,9 @@ export type SiteSettingsData = {
   venmoHandle: string; // shown on the orders page when chasing a Venmo payment
   categories: string[];
   heroImageUrl: string | null; // Supabase Storage URL; null = beaded-strand illustration
+  // Photo of the owner on the About page. null = the shop's illustration
+  // and a nudge in the admin to upload one.
+  aboutImageUrl: string | null;
   // Header logo. null = the sage "P" badge + letterspaced wordmark.
   // A logo usually already contains the shop name, so it replaces both.
   logoUrl: string | null;
