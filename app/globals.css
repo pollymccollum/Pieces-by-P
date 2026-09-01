@@ -204,13 +204,24 @@ body {
   gap: 22px;
   align-items: center;
 }
+/* Half of these are <a> now that About and Contact are real routes, so they
+   have to be told not to be blue-and-underlined, and not to turn purple once
+   visited. Same rules whether they render as a button or a link. */
 .pp-navlink {
   background: none;
   border: none;
   color: var(--ink);
   padding: 6px 0;
+  text-decoration: none;
+}
+.pp-navlink:visited {
+  color: var(--ink);
 }
 .pp-navlink:hover {
+  color: var(--sage-deep);
+}
+/* The page you're on, marked quietly. */
+.pp-navlink.on {
   color: var(--sage-deep);
 }
 .pp-cartbtn {
@@ -221,9 +232,14 @@ body {
   align-items: center;
   gap: 7px;
   color: var(--ink);
+  text-decoration: none;
 }
 .pp-cartbtn:hover {
   color: var(--sage-deep);
+}
+.pp-brand {
+  text-decoration: none;
+  color: inherit;
 }
 .pp-badge-count {
   min-width: 18px;
@@ -1113,14 +1129,31 @@ body {
   background: linear-gradient(180deg, var(--cream), var(--cream2));
 }
 
-/* Contact page */
+/* Contact page.
+   .pp-contact-grid was written for the old full-width band, where it sat
+   inside .pp-wrap and inherited its inset. Standing alone here it had no
+   horizontal padding at all, so the details ran flat into the window edge. */
 .pp-contactpage {
-  padding-bottom: 20px;
+  padding-bottom: 40px;
+}
+.pp-contactpage .pp-contact-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: 22px;
+  padding-right: 22px;
+  padding-top: 34px;
+  padding-bottom: 40px;
+  gap: 40px;
 }
 .pp-contactintro {
   max-width: 1180px;
   margin: 0 auto;
   padding: 48px 22px 0;
+}
+/* Let a long heading wrap into two or three lines instead of stretching the
+   full 1180px, which is well past a comfortable reading measure. */
+.pp-contactintro .pp-h1 {
+  max-width: 15ch;
 }
 .pp-contactlist {
   margin: 0;
@@ -1237,16 +1270,31 @@ body {
   flex-wrap: wrap;
   justify-content: center;
 }
+/* Anchors here now, so they need colours of their own — the browser's blue,
+   and then visited purple, was close to unreadable on a near-black bar.
+   Pale green from the owner's own palette, the same colour as the
+   announcement band at the top, which ties the two ends of the page
+   together. Around 11:1 against --ink, so it reads easily at 11px. */
+.pp-flinks a,
 .pp-flinks button {
   background: none;
   border: none;
-  color: #b4ae9c;
+  padding: 0;
+  color: var(--band);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  text-decoration: none;
+  font-family: inherit;
 }
+.pp-flinks a:visited {
+  color: var(--band);
+}
+.pp-flinks a:hover,
 .pp-flinks button:hover {
   color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 .pp-fine {
   font-size: 10.5px;
@@ -1316,6 +1364,15 @@ body {
   }
   .pp-contactintro {
     padding: 66px 42px 0;
+  }
+  .pp-contactpage .pp-contact-grid {
+    padding-left: 42px;
+    padding-right: 42px;
+    padding-top: 40px;
+    gap: 64px;
+    /* Two lists of different heights. Centring them against each other left
+       the form floating oddly beside the details. */
+    align-items: start;
   }
   .pp-frow {
     flex-direction: row;

@@ -37,14 +37,18 @@ export function Header({
   return (
     <header className="pp-header">
       <div className="pp-wrap pp-headrow">
+        {/* On the shop page the wordmark scrolls to the top. Everywhere
+            else it is plain, non-interactive text: as a link it took on
+            underline-and-visited-purple and read as a mistake. Shop in the
+            nav, or the browser's back button, is how you get back. */}
         {onHome ? (
           <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
           </button>
         ) : (
-          <Link className="pp-brand" href="/">
+          <span className="pp-brand">
             <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
-          </Link>
+          </span>
         )}
 
         <nav className="pp-nav">
