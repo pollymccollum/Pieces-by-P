@@ -25,6 +25,7 @@ export default async function About() {
         about={settings.about}
         fonts={settings.fonts}
         imageUrl={settings.aboutImageUrl}
+        maker={settings.contact.maker}
       />
     </SiteChrome>
   );

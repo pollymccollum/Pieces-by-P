@@ -10,10 +10,12 @@ export function AboutPage({
   about,
   fonts,
   imageUrl,
+  maker,
 }: {
   about: AboutContent;
   fonts: FontChoices;
   imageUrl: string | null;
+  maker: string;
 }) {
   // Blank lines become paragraphs, so she writes her story in one box and
   // controls the shape of it herself. Same rule as the emails.
@@ -21,6 +23,11 @@ export function AboutPage({
     .trim()
     .split(/\n\s*\n/)
     .filter(Boolean);
+
+  // Signs the story off in her own hand. Taken from the "Made by" field
+  // she already fills in, so it needs no new setting and can never be
+  // some other person's name.
+  const firstName = (maker ?? "").trim().split(" ")[0];
 
   return (
     <>
@@ -40,6 +47,12 @@ export function AboutPage({
               <p key={i}>{p}</p>
             ))}
           </div>
+
+          {firstName && (
+            <p className="pp-aboutsign" aria-hidden="true">
+              — {firstName}
+            </p>
+          )}
 
           <Link href="/contact" className="pp-btn sage pp-aboutcta">
             Get in touch
