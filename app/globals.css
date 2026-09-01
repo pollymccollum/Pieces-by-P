@@ -49,6 +49,18 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
+/* iOS Safari colours button text with the system blue unless told
+   otherwise, so any button whose text had no colour of its own — the piece
+   names in the shop grid — came out blue on a phone while looking correct on
+   every desktop browser. Inheriting means a button reads as the text around
+   it by default.
+
+   Deliberately a bare `button` selector, not `.pp-root button`: at the
+   lowest possible specificity every class that sets its own colour still
+   wins, so the nav links, the sage buttons and the rest are untouched. */
+button {
+  color: inherit;
+}
 .pp-root button {
   font-family: inherit;
   cursor: pointer;
