@@ -1083,10 +1083,17 @@ body {
   padding: 48px 22px 52px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Was `center`. With a long story that pushed the overflow out of both
+     ends of the box; from the top it simply grows downward, which is what a
+     page of writing should do. */
+  justify-content: flex-start;
   max-width: 660px;
   margin: 0 auto;
   width: 100%;
+  /* Long words and pasted URLs can't force the column wider than its share
+     of the grid, which is what let the text reach under the photo. */
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 .pp-aboutbody {
   margin-top: 18px;
@@ -1105,11 +1112,18 @@ body {
   margin-top: 26px;
   text-decoration: none;
 }
+/* The photo column grows with the row; the photo inside it does not.
+   That separation is the whole trick: however long Polly's story gets, the
+   page just gets taller and the photo stays a sensible size instead of
+   either stretching into a distorted strip or having the text run on
+   underneath it. */
 .pp-aboutart {
-  position: relative;
   order: -1;
-  min-height: 320px;
   background: var(--cream2);
+}
+.pp-aboutart-inner {
+  position: relative;
+  height: 320px;
 }
 .pp-aboutart .pp-photo {
   position: absolute;
@@ -1357,7 +1371,13 @@ body {
   }
   .pp-aboutart {
     order: 0;
-    min-height: 520px;
+  }
+  /* Sticks as the story scrolls past, so her face stays with her words
+     however far down the page they go. 66px clears the sticky header. */
+  .pp-aboutart-inner {
+    position: sticky;
+    top: 66px;
+    height: min(78vh, 660px);
   }
   .pp-aboutcopy {
     padding: 66px 42px;

@@ -47,19 +47,25 @@ export function AboutPage({
         </div>
 
         <div className="pp-aboutart">
-          {imageUrl ? (
-            // Her own photo, uploaded in the admin. A plain <img> for the same
-            // reason as the product photos: owner-controlled storage paths.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt={about.title} className="pp-photo" />
-          ) : (
-            // Until she uploads one, the shop's own illustration rather than
-            // an empty grey rectangle.
-            <div className="pp-aboutplaceholder">
-              <StrandArt category="Necklaces" colors={[]} charm="heart" size={180} />
-              <span className="pp-tag-note">Add a photo of yourself in Site content → About</span>
-            </div>
-          )}
+          {/* The photo is its own fixed-height box inside a column that grows
+              with the story, and it sticks as you scroll. Without the wrapper
+              the column height was driving the layout, so a long story ran on
+              underneath the photo instead of pushing the page taller. */}
+          <div className="pp-aboutart-inner">
+            {imageUrl ? (
+              // Her own photo, uploaded in the admin. A plain <img> for the
+              // same reason as the product photos: owner-controlled paths.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl} alt={about.title} className="pp-photo" />
+            ) : (
+              // Until she uploads one, the shop's own illustration rather than
+              // an empty grey rectangle.
+              <div className="pp-aboutplaceholder">
+                <StrandArt category="Necklaces" colors={[]} charm="heart" size={180} />
+                <span className="pp-tag-note">Add a photo of yourself in Site content → About</span>
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </>
