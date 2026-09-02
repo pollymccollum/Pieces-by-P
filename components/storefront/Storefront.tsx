@@ -220,6 +220,7 @@ export function Storefront({
         <ProductModal
           product={activeProduct}
           inCart={qtyInCart(activeProduct.id)}
+          customBox={settings.customBox}
           onClose={() => setActiveId(null)}
           onAddToCart={addToCart}
         />

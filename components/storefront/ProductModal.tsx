@@ -1,18 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { focalStyle, remainingFor, stockState, type Product } from "@/lib/types";
+import {
+  focalStyle,
+  remainingFor,
+  stockState,
+  type CustomOrderContent,
+  type Product,
+} from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "./visuals";
 
 export function ProductModal({
   product,
   inCart,
+  customBox,
   onClose,
   onAddToCart,
 }: {
   product: Product;
   inCart: number; // already in the cart, so we don't let them exceed stock
+  customBox: CustomOrderContent;
   onClose: () => void;
   onAddToCart: (product: Product, qty: number, note: string) => void;
 }) {
@@ -99,12 +107,16 @@ export function ProductModal({
                 do nothing at all. */}
             {product.custom && (
               <div className="pp-custom">
-                <span className="pp-spec">Make it yours</span>
+                {/* Both the heading and the greyed-out example are hers,
+                    from Site content. Falling back to the originals means
+                    an emptied field never leaves a customer staring at an
+                    unlabelled box. */}
+                <span className="pp-spec">{customBox.label.trim() || "Make it yours"}</span>
                 <input
                   className="pp-input"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Color swaps, initials, team colors, sizing…"
+                  placeholder={customBox.placeholder}
                 />
               </div>
             )}

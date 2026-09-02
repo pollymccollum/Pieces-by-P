@@ -12,7 +12,7 @@
 -- without needing a policy of their own.
 --
 -- Deliberately owner-only. 'anon' can still INSERT an order (that's
--- checkout) and can never read, change, or remove one.
+-- checkout) and can never read, change, or rYEemove one.
 -- ============================================================
 
 drop policy if exists "owner delete orders" on orders;

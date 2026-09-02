@@ -960,6 +960,40 @@
   margin-top: 12px;
   flex-wrap: wrap;
 }
+/* Shows the box as the customer meets it, so checking her wording doesn't
+   mean opening the shop in another tab and clicking into a piece. */
+.ad-boxprev {
+  margin-top: 16px;
+  background: var(--cream);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  padding: 16px;
+}
+.ad-boxprev-lbl {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-deep);
+  margin-bottom: 8px;
+}
+.ad-boxprev-field {
+  background: var(--surface);
+  border: 1px solid var(--sage);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.ad-boxprev-note {
+  text-align: center;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  padding-top: 10px;
+}
+
 .ad-mailprev {
   margin-top: 18px;
   background: var(--cream);

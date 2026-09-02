@@ -453,6 +453,58 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </div>
       </div>
 
+      {/* ---- the "make it yours" box ---- */}
+      {/* Sits between Contact and Emails so the cards a customer actually
+          reads run together, rather than being buried among the layout
+          controls. */}
+      <div className="ad-card">
+        <p className="ad-sec">Make it yours box</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          The box a customer types their colors or an initial into. It shows on
+          any piece where you&apos;ve ticked <b>Show the &ldquo;make it
+          yours&rdquo; box</b> over on Pieces.
+        </p>
+
+        <div className="ad-grid2">
+          <div className="ad-field">
+            <span className="ad-lbl">Heading above the box</span>
+            <input
+              className="pp-input"
+              maxLength={40}
+              value={s.customBox.label}
+              onChange={(e) => patch({ customBox: { ...s.customBox, label: e.target.value } })}
+            />
+          </div>
+          <div className="ad-field">
+            <span className="ad-lbl">Faded example inside it</span>
+            <input
+              className="pp-input"
+              maxLength={90}
+              value={s.customBox.placeholder}
+              onChange={(e) =>
+                patch({ customBox: { ...s.customBox, placeholder: e.target.value } })
+              }
+            />
+          </div>
+        </div>
+        <span className="ad-help" style={{ marginTop: 8, display: "block" }}>
+          The faded example disappears the moment they start typing — it&apos;s a
+          hint, not an answer. Naming the things you can actually do (&ldquo;team
+          colors, an initial, a longer chain&rdquo;) gets you far more useful
+          requests than leaving it empty.
+        </span>
+
+        {/* Exactly what a customer sees, so she doesn't have to open the shop
+            in another tab and click into a piece to check her wording. */}
+        <div className="ad-boxprev">
+          <span className="ad-boxprev-lbl">{s.customBox.label.trim() || "Make it yours"}</span>
+          <div className="ad-boxprev-field">
+            {s.customBox.placeholder.trim() || "\u00a0"}
+          </div>
+          <div className="ad-boxprev-note">Preview</div>
+        </div>
+      </div>
+
       {/* ---- emails ---- */}
       {/* Only the friendly wording is editable. Order numbers, items, totals,
           the address, and the Venmo instructions stay generated, so nothing

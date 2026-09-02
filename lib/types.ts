@@ -106,6 +106,15 @@ export type AboutContent = {
   body: string;
 };
 
+// The "make it yours" box on a piece, which is where a customer types
+// their colours or an initial. Site-wide wording rather than per-piece:
+// it should read the same everywhere, and this way turning the box on
+// for a new piece is still one tick with nothing else to fill in.
+export type CustomOrderContent = {
+  label: string;
+  placeholder: string;
+};
+
 export type ContactContent = {
   heading: string;
   instagram: string;
@@ -335,5 +344,6 @@ export type SiteSettingsData = {
   hero: HeroContent;
   about: AboutContent;
   contact: ContactContent;
+  customBox: CustomOrderContent;
   emails: EmailContent;
 };

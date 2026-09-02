@@ -52,6 +52,10 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
       String.fromCharCode(10, 10) +
       "This is your About page — rewrite it in your own words in the admin. Tell people who you are, what your brand is about, and how you started. Leave a blank line between paragraphs.",
   },
+  customBox: {
+    label: "Make it yours",
+    placeholder: "Color swaps, initials, team colors, sizing…",
+  },
   emails: {
     confirmationNote: "Each piece is handmade to order and ships in about a week.",
     signoff: "Thank you for supporting a small handmade shop.",
@@ -90,6 +94,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     contact: { ...FALLBACK_SETTINGS.contact, ...row.contact },
     // Merged like the rest: a settings row written before this existed
     // still gets the default wording rather than blank emails.
+    customBox: { ...FALLBACK_SETTINGS.customBox, ...row.customBox },
     emails: { ...FALLBACK_SETTINGS.emails, ...row.emails },
   };
 }

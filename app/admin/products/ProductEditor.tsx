@@ -324,6 +324,12 @@ export function ProductEditor({
             <input type="checkbox" name="custom" defaultChecked={product.custom} />
             Show the &ldquo;make it yours&rdquo; box on this piece
           </label>
+          {/* The wording is site-wide, so it lives in the site editor. Said
+              here because this tick box is where she'll be wondering about
+              it. */}
+          <span className="ad-help" style={{ marginTop: -4 }}>
+            Change what it says in Site content → Make it yours box.
+          </span>
 
           <label className="ad-toggle" style={{ textTransform: "none", fontSize: 13, letterSpacing: 0 }}>
             <input type="checkbox" name="active" defaultChecked={product.active} />
