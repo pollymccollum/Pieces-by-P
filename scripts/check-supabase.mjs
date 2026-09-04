@@ -150,45 +150,111 @@ if (!process.env.BREVO_API_KEY || !process.env.EMAIL_FROM) {
 }
 
 // 10. Stripe + service role
+//
+// The webhook is the only thing that marks a card order paid, and its secret
+// carries no mode marker of its own — a live secret key paired with a test
+// webhook secret looks fine in every env file and fails silently at the worst
+// possible moment: the card is charged and no order is ever recorded.
+//
+// So rather than compare strings, ask Stripe. Listing webhook endpoints with
+// the secret key returns the endpoints that exist IN THAT KEY'S MODE, which
+// answers the real question: does the mode I'm about to sell in actually have
+// a working webhook pointing at this site?
 const sk = process.env.STRIPE_SECRET_KEY?.trim();
-const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim();
 const whsec = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
 
-const mode = (k) => (k?.includes("_test_") ? "test" : k?.includes("_live_") ? "LIVE" : null);
+const keyMode = (k) => (k?.includes("_test_") ? "test" : k?.includes("_live_") ? "LIVE" : null);
 
 if (!sk) {
   warn("card payments off — STRIPE_SECRET_KEY not set (Venmo checkout still works)");
 } else {
-  const skMode = mode(sk);
-  const pkMode = mode(pk);
-
+  const skMode = keyMode(sk);
   ok(`Stripe secret key present (${skMode ?? "unrecognised format"} mode)`);
-
-  if (!pk) {
-    warn("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY not set");
-  } else if (skMode && pkMode && skMode !== pkMode) {
-    // Genuinely dangerous: real cards charged against test config, or a
-    // "live" storefront that silently can't take money.
-    fail(`Stripe key MISMATCH — secret is ${skMode}, publishable is ${pkMode}. Both must match.`);
-  } else {
-    ok(`Stripe publishable key present (${pkMode ?? "unrecognised format"} mode)`);
-  }
 
   if (skMode === "LIVE") {
     warn("Stripe is in LIVE mode — real cards will be charged.");
+    if (siteUrl && /localhost|127\.0\.0\.1/.test(siteUrl)) {
+      fail(`LIVE Stripe keys with NEXT_PUBLIC_SITE_URL=${siteUrl} — customers would be sent to localhost after paying.`);
+    }
   }
 
   if (!whsec) {
-    warn("STRIPE_WEBHOOK_SECRET not set — paid orders won't be recorded");
+    fail("STRIPE_WEBHOOK_SECRET not set — cards would be charged and no order recorded");
     warn("  -> local: stripe listen --forward-to localhost:3000/api/stripe/webhook");
   } else {
     ok("Stripe webhook secret present");
   }
 
+  // Ask Stripe what exists in this key's mode.
+  //
+  // Two APIs to check: endpoints made in the older dashboard live under
+  // /v1/webhook_endpoints, ones made in Workbench under /v2 event
+  // destinations. Checking only one would report "no webhook" at a shop that
+  // has a perfectly good one, and a check that cries wolf gets ignored
+  // exactly when it finally means something.
+  const localSite = !siteUrl || /localhost|127\.0\.0\.1/.test(siteUrl);
+  try {
+    const endpoints = [];
+    for (const api of [
+      "https://api.stripe.com/v1/webhook_endpoints?limit=100",
+      "https://api.stripe.com/v2/core/event_destinations?limit=100",
+    ]) {
+      const res = await fetch(api, {
+        headers: { Authorization: `Bearer ${sk}` },
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) continue;
+      const body = await res.json();
+      for (const e of body.data ?? []) {
+        endpoints.push({
+          url: e.url ?? e.webhook_endpoint?.url ?? "(unknown url)",
+          enabled: (e.status ?? e.enabled_status ?? "enabled") === "enabled",
+          events: e.enabled_events ?? e.events_from?.map?.((x) => x) ?? e.event_types ?? [],
+        });
+      }
+    }
+
+    const enabled = endpoints.filter((e) => e.enabled);
+
+    if (enabled.length === 0) {
+      // Locally this is normal — `stripe listen` forwards without registering
+      // anything. On a real domain it means paid orders go unrecorded.
+      const msg = `no registered webhook endpoint in Stripe ${skMode ?? "this"} mode`;
+      if (localSite) {
+        warn(`${msg} (fine if you're using: stripe listen --forward-to localhost:3000/api/stripe/webhook)`);
+      } else {
+        fail(`${msg} — cards would be charged and no order ever recorded`);
+        warn("  -> Stripe Dashboard > Developers > Webhooks > Add destination");
+        warn("  -> a webhook made in TEST mode does not carry over to LIVE");
+      }
+    } else {
+      const NEEDED = ["checkout.session.completed", "checkout.session.expired"];
+      const matching = siteUrl && !localSite ? enabled.filter((e) => e.url.startsWith(siteUrl)) : enabled;
+
+      if (siteUrl && !localSite && matching.length === 0) {
+        fail(`Stripe has ${enabled.length} webhook(s) in ${skMode ?? "this"} mode, none pointing at ${siteUrl}`);
+        enabled.forEach((e) => warn(`  -> found instead: ${e.url}`));
+      } else {
+        for (const e of matching) {
+          const all = e.events.includes("*");
+          const missing = NEEDED.filter((n) => !all && !e.events.includes(n));
+          if (missing.length) {
+            fail(`webhook ${e.url} is not listening for: ${missing.join(", ")}`);
+          } else {
+            ok(`webhook ready: ${e.url}`);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    warn(`couldn't reach Stripe to verify the webhook (${err.message})`);
+  }
+
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) {
-    fail("SUPABASE_SERVICE_ROLE_KEY missing — the webhook cannot mark orders paid");
+    fail("SUPABASE_SERVICE_ROLE_KEY missing — checkout refuses every order and the webhook can't record payment");
   } else {
-    ok("service-role key present (used only by the Stripe webhook)");
+    ok("service-role key present (webhook, stock reservation, rate limiting)");
   }
 }
 
