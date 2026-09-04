@@ -58,6 +58,9 @@ In the Supabase dashboard: **SQL Editor → New query**, paste each file, run it
 | [supabase/add-order-archive.sql](supabase/add-order-archive.sql) | `archived_at` column behind the orders board's Archive control (**required**) |
 | [supabase/add-photo-focus.sql](supabase/add-photo-focus.sql) | `focal_x`/`focal_y` on photos — the owner's crop position (**required**) |
 | [supabase/add-charm-text.sql](supabase/add-charm-text.sql) | `charm_text` for the lettered illustration charm (**required**) |
+| [supabase/add-email-status.sql](supabase/add-email-status.sql) | `confirmation_email` on orders, so a failed send is visible (**required**) |
+| [supabase/add-status-constraints.sql](supabase/add-status-constraints.sql) | CHECK constraints on order/product statuses and amounts (**required**) |
+| [supabase/setup-new-project.sql](supabase/setup-new-project.sql) | **Generated** — all of the above in order, one paste. `npm run build:setup-sql` |
 
 Skip both seed files on Polly's real project: she enters her own pieces and
 copy through the admin, and fake orders must never reach a live shop.

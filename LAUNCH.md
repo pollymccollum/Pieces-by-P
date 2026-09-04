@@ -51,7 +51,10 @@ forgets about it.
 
 For each account, Jack needs the **API keys only** — never her passwords:
 
-- Supabase → Project URL + publishable key
+- Supabase → Project URL + publishable key + **service-role key**
+  (the third one is secret and server-only — it goes straight into
+  Netlify, never into a chat or a commit. Without it nothing can be
+  sold at all: see the warning under step 7 below.)
 - Stripe → publishable key + secret key + webhook signing secret
 - Brevo → API key
 - Netlify → she just adds Jack as a collaborator, or pastes the keys herself
@@ -107,19 +110,19 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 
 3. [x] Polly creates a GitHub account; transfer the repo to her, add Jack as collaborator
 4. [x] Polly creates Supabase project (free tier)
-5. [x] Jack runs these nine in the Supabase SQL Editor, **in this order**:
-       `schema.sql` → `rls.sql` → `storage.sql` → `layout-settings.sql` →
-       `add-stock.sql` → `add-order-delete.sql` → `add-order-archive.sql` →
-       `add-photo-focus.sql` → `add-charm-text.sql`
+5. [x] Jack pastes **`setup-new-project.sql`** into the Supabase SQL Editor
+       and presses Run. One paste, everything in the right order.
+       It is generated from the individual files by
+       `npm run build:setup-sql`, which now refuses to run if any `.sql`
+       file is unaccounted for — so it cannot silently fall behind the
+       way it did once before.
+       Prefer to run them by hand? The combined file lists its contents,
+       in order, in its own header. Use that list rather than one written
+       out here, which is exactly the thing that drifted.
        - **Do not run** `seed.sql` or `seed-orders.sql` — fake pieces and fake
-         customers, dev only.
-       - **Do not run** `add-contact-fields.sql` — it only patches projects
-         made before those columns existed; `schema.sql` already includes them.
-       - `add-stock.sql` **is** required despite its name: the stock functions
-         checkout depends on live only in that file.
-       - `add-order-delete.sql` and `add-order-archive.sql` power the two
-         tidy-up controls on the orders page. Skip either and that button
-         says which file to run.
+         customers, dev only. The generator refuses to include them.
+       - Every file the combined script leaves out is named in its header,
+         each with the reason it's excluded.
 6. [x] Jack runs `verify-rls.sql`, then `npm run check:supabase` — both should come back clean
 7. [x] Polly creates her admin login (Supabase → Authentication → Users)
 8. [ ] Polly creates Brevo account (brevo.com, free tier)
@@ -220,8 +223,13 @@ files contain `drop table` or `delete from`.
 | 5 | `add-stock.sql` | Stock functions — **required**, see below |
 | 6 | `add-order-delete.sql` | Lets the owner delete an order from the admin |
 | 7 | `add-order-archive.sql` | Lets the owner clear a finished order off the board |
-| 8 | `add-photo-focus.sql` | Per-photo crop position, so she frames each tile herself |
+| 8 | `add-photo-focus.sql` | Per-photo crop position and zoom |
 | 9 | `add-charm-text.sql` | Wording for the lettered illustration charm |
+| 10 | `add-email-status.sql` | Records whether each confirmation email got out |
+| 11 | `add-status-constraints.sql` | Stops the database accepting a status nothing renders |
+
+In practice you don't run these one at a time — `setup-new-project.sql`
+contains all of them, in this order, and is regenerated from them.
 
 **Do NOT run:**
 
@@ -251,7 +259,17 @@ placing an order fails.
      **Not** the `/rest/v1/` version; the client appends that itself.
    - **Publishable / anon key** — `sb_publishable_...` or `eyJ...`. Either
      works.
-   - **Never** the secret / `service_role` key. This project doesn't use it.
+   - **Secret / `service_role` key** — ⚠️ **required.** Three things need
+     it: the Stripe webhook that marks an order paid, stock reservation
+     on both checkout paths, and the contact-form rate limit. Set it as
+     `SUPABASE_SERVICE_ROLE_KEY` in Netlify and in `.env.local`.
+     **Never** in a `NEXT_PUBLIC_` variable, never in the browser, never
+     in a commit — it bypasses every row-security policy.
+
+     Miss it and the shop cannot sell: both Venmo and card checkout
+     refuse every order, and the webhook returns 500. It fails safely —
+     no card is charged without an order being recorded — but it is a
+     total outage until the key is set.
 
 **E. Verify before moving on**
 

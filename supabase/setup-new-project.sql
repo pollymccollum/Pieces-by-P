@@ -12,23 +12,33 @@
 --   4. layout-settings.sql
 --   5. add-stock.sql
 --   6. add-messages.sql
+--   7. add-order-delete.sql
+--   8. add-order-archive.sql
+--   9. add-photo-focus.sql
+--   10. add-charm-text.sql
+--   11. add-email-status.sql
+--   12. add-status-constraints.sql
 --
 -- Supabase will warn about "destructive operations". That is the
 -- `drop policy if exists` and `create or replace function` lines, which
 -- are there to make this file safely re-runnable. There is no
 -- `drop table` or `delete from` anywhere in it.
 --
--- DELIBERATELY EXCLUDED - never run these on a real shop:
---   seed.sql
---   seed-orders.sql
---   add-contact-fields.sql
+-- DELIBERATELY EXCLUDED - do not run these as part of setup:
+--   seed.sql — 12 fake pieces — dev only
+--   seed-orders.sql — 8 fake customers and orders — dev only
+--   add-contact-fields.sql — patches projects made before those columns existed
+--   harden-stock-grants.sql — patches projects made before add-stock.sql revoked anon
+--   cleanup-test-data.sql — run by hand at launch, not at setup
+--   verify-rls.sql — a read-only check, run after this file
+--   setup-new-project.sql — this file
 --
 -- After running this, run verify-rls.sql, then `npm run check:supabase`.
 -- ============================================================
 
 
 -- ==========================================================
--- [1/6]  schema.sql
+-- [1/12]  schema.sql
 -- ==========================================================
 
 -- ============================================================
@@ -192,7 +202,7 @@ insert into site_settings (id, data) values (1, jsonb_build_object(
 
 
 -- ==========================================================
--- [2/6]  rls.sql
+-- [2/12]  rls.sql
 -- ==========================================================
 
 -- ============================================================
@@ -234,7 +244,7 @@ create policy "owner read items"    on order_items    for select using (auth.rol
 
 
 -- ==========================================================
--- [3/6]  storage.sql
+-- [3/12]  storage.sql
 -- ==========================================================
 
 -- ============================================================
@@ -276,7 +286,7 @@ create policy "owner delete photos"
 
 
 -- ==========================================================
--- [4/6]  layout-settings.sql
+-- [4/12]  layout-settings.sql
 -- ==========================================================
 
 -- ============================================================
@@ -314,7 +324,7 @@ where id = 1;
 
 
 -- ==========================================================
--- [5/6]  add-stock.sql
+-- [5/12]  add-stock.sql
 -- ==========================================================
 
 -- ============================================================
@@ -447,7 +457,7 @@ grant execute on function release_stock(jsonb) to authenticated, service_role;
 
 
 -- ==========================================================
--- [6/6]  add-messages.sql
+-- [6/12]  add-messages.sql
 -- ==========================================================
 
 -- ============================================================
@@ -490,3 +500,291 @@ create policy "owner update messages"
 drop policy if exists "owner delete messages" on messages;
 create policy "owner delete messages"
   on messages for delete using (auth.role() = 'authenticated');
+
+
+-- ==========================================================
+-- [7/12]  add-order-delete.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Let the owner delete an order
+-- Run once, on every project. Safe to re-run.
+--
+-- rls.sql gives the owner SELECT and UPDATE on orders, but never DELETE.
+-- Without a policy, RLS doesn't raise an error — it just matches no rows,
+-- so the delete "succeeds" and the order is still there. The admin now
+-- checks the returned row count and says so, but the real fix is here.
+--
+-- order_items has ON DELETE CASCADE, and referential actions run as the
+-- table owner rather than the caller, so the lines go with the order
+-- without needing a policy of their own.
+--
+-- Deliberately owner-only. 'anon' can still INSERT an order (that's
+-- checkout) and can never read, change, or remove one.
+-- ============================================================
+
+drop policy if exists "owner delete orders" on orders;
+
+create policy "owner delete orders" on orders
+  for delete using (auth.role() = 'authenticated');
+
+-- Verify: expect exactly one row, cmd = DELETE, roles = {public},
+-- qual = (auth.role() = 'authenticated'::text)
+select policyname, cmd, roles, qual
+from pg_policies
+where schemaname = 'public'
+  and tablename = 'orders'
+  and cmd = 'DELETE';
+
+
+-- ==========================================================
+-- [8/12]  add-order-archive.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Archive an order instead of deleting it
+-- Run once, on every project. Safe to re-run.
+--
+-- Archiving is the answer to a cluttered board; deleting is for genuine
+-- rubbish. An archived order keeps every detail — what was bought, what it
+-- cost, where it went — it just stops competing for attention.
+--
+-- A timestamp rather than a boolean, so "when did she consider this done?"
+-- is answerable later. NULL = still on the board.
+--
+-- No new RLS policy needed: rls.sql already grants the owner UPDATE on
+-- orders, and this is an UPDATE. Contrast add-order-delete.sql, which had
+-- to add a policy because DELETE was never granted.
+-- ============================================================
+
+alter table orders
+  add column if not exists archived_at timestamptz;
+
+-- The board's default view is "not archived", and that runs on every load
+-- of the orders page.
+create index if not exists orders_archived_idx
+  on orders (archived_at)
+  where archived_at is null;
+
+-- Verify: expect one row, archived_at / timestamp with time zone / YES
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'orders'
+  and column_name = 'archived_at';
+
+
+-- ==========================================================
+-- [9/12]  add-photo-focus.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Let the owner position each photo in its tile
+-- Run once, on every project. Safe to re-run.
+--
+-- The shop grid crops photos to a fixed shape, and the crop defaults to
+-- the middle of the image. That is wrong as often as it is right: a
+-- necklace photographed slightly off-centre loses its pendant, and the
+-- only fix was re-cropping the file and re-uploading it.
+--
+-- These two numbers are a focal point in percent — the part of the photo
+-- that must stay visible when the tile crops. They feed CSS object-position
+-- directly, so nothing is ever written to the image file: the original
+-- upload is untouched and she can reposition as many times as she likes.
+--
+-- 50/50 is dead centre, which is exactly today's behaviour, so existing
+-- photos look identical until she moves one.
+--
+-- No new RLS policy needed: rls.sql already grants the owner ALL on
+-- product_images.
+-- ============================================================
+
+alter table product_images
+  add column if not exists focal_x smallint not null default 50,
+  add column if not exists focal_y smallint not null default 50,
+  -- Zoom as a percentage. 100 = the photo exactly fills the tile.
+  --
+  -- Zoom is what makes panning work in both directions. At 100 a portrait
+  -- photo in a square tile is already exactly as wide as the frame, so there
+  -- is nothing hidden to the left or right to slide into view and only the
+  -- vertical crop can be chosen. Above 100 the photo overflows on both axes
+  -- and she can move it anywhere.
+  add column if not exists zoom smallint not null default 100;
+
+-- Percentages. Anything outside 0–100 would be a bug in the admin, not a
+-- crop the owner chose, so the database refuses it.
+alter table product_images
+  drop constraint if exists product_images_focal_range;
+
+alter table product_images
+  add constraint product_images_focal_range
+  check (
+    focal_x between 0 and 100
+    and focal_y between 0 and 100
+    -- Past 3x, a phone photo of a small piece is visibly mushy. The admin
+    -- stops at the same place.
+    and zoom between 100 and 300
+  );
+
+-- Verify: expect three rows, all smallint (50 / 50 / 100)
+select column_name, data_type, column_default
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'product_images'
+  and column_name in ('focal_x', 'focal_y', 'zoom')
+order by column_name;
+
+
+-- ==========================================================
+-- [10/12]  add-charm-text.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Lettered illustration charm
+-- Run once, on every project. Safe to re-run.
+--
+-- products.charm picks the shape drawn on the beaded-strand illustration
+-- (the placeholder shown before a piece has photos). It was heart / star /
+-- coin only. Setting charm = 'text' draws a small gold charm carrying this
+-- wording instead, so an initial or a short word can appear the way it
+-- would on the real piece.
+--
+-- Only read when charm = 'text'. Left over from a change of mind, it does
+-- nothing.
+--
+-- No new RLS policy needed: rls.sql already grants the owner ALL on products.
+-- ============================================================
+
+alter table products
+  add column if not exists charm_text text;
+
+-- The charm is a few millimetres wide in the drawing; more than a dozen
+-- characters cannot be rendered legibly, so the database says so too.
+alter table products
+  drop constraint if exists products_charm_text_len;
+
+alter table products
+  add constraint products_charm_text_len
+  check (charm_text is null or char_length(charm_text) <= 12);
+
+-- Verify: expect one row
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'products'
+  and column_name = 'charm_text';
+
+
+-- ==========================================================
+-- [11/12]  add-email-status.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Record whether the confirmation email got out
+-- Run once, on every project. Safe to re-run.
+--
+-- Sending is best-effort by design: a mail failure must never fail an order,
+-- because a customer whose confirmation bounced still has a real order and
+-- Polly can still see it. But until now the only trace of a failure was a
+-- console.error in Netlify's function logs, which nobody is watching.
+--
+-- A Brevo outage, an expired key, or an exhausted daily quota would mean
+-- customers quietly stop receiving confirmations, and the first anyone hears
+-- of it is somebody asking whether their order went through.
+--
+-- Writing the outcome onto the order puts it where Polly is already looking.
+--
+--   null      — not attempted (email not configured, or an older order)
+--   'sent'    — Brevo accepted it
+--   'failed'  — it did not go; the reason is in the logs
+--   'skipped' — held back deliberately, because the hour looked like abuse
+--               rather than trade. See orderEmailBudgetSpent() in
+--               lib/rate-limit.ts: the order is always saved, only the
+--               automatic receipt pauses.
+-- ============================================================
+
+alter table orders
+  add column if not exists confirmation_email text;
+
+alter table orders drop constraint if exists orders_confirmation_email_valid;
+alter table orders
+  add constraint orders_confirmation_email_valid
+  check (confirmation_email is null or confirmation_email in ('sent', 'failed', 'skipped'));
+
+-- Verify: expect one row
+select column_name, data_type, is_nullable
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'orders'
+  and column_name = 'confirmation_email';
+
+
+-- ==========================================================
+-- [12/12]  add-status-constraints.sql
+-- ==========================================================
+
+-- ============================================================
+-- PIECES BY P  |  Teach the database the values it will accept
+-- Run once, on every project. Safe to re-run.
+--
+-- The status columns were plain `text` with their valid values written in a
+-- comment beside them. The app has always validated all four correctly, so
+-- nothing has ever written a bad one — but a comment is not a constraint.
+-- One hand-run UPDATE in the SQL editor, or one future code path that skips
+-- the server action, could store a status nothing renders, and it would stay
+-- invisible until an order looked wrong on the board.
+--
+-- The same reasoning for stock: reserve_stock() cannot take it below zero,
+-- and the admin refuses a negative number, but the column itself would
+-- happily hold -4.
+--
+-- If any of these fail on an existing project, that IS the finding: something
+-- already wrote a value the app can't render. Fix the row, then re-run.
+-- ============================================================
+
+alter table orders drop constraint if exists orders_payment_method_valid;
+alter table orders
+  add constraint orders_payment_method_valid
+  check (payment_method in ('venmo', 'card'));
+
+alter table orders drop constraint if exists orders_payment_status_valid;
+alter table orders
+  add constraint orders_payment_status_valid
+  check (payment_status in ('pending', 'paid', 'refunded'));
+
+alter table orders drop constraint if exists orders_fulfillment_status_valid;
+alter table orders
+  add constraint orders_fulfillment_status_valid
+  check (fulfillment_status in ('new', 'making', 'shipped'));
+
+-- Money is stored in integer cents and can never be negative.
+alter table orders drop constraint if exists orders_totals_not_negative;
+alter table orders
+  add constraint orders_totals_not_negative
+  check (subtotal_cents >= 0 and shipping_cents >= 0 and total_cents >= 0);
+
+-- null = made to order, unlimited. A number is a real count.
+alter table products drop constraint if exists products_stock_not_negative;
+alter table products
+  add constraint products_stock_not_negative
+  check (stock is null or stock >= 0);
+
+alter table products drop constraint if exists products_price_not_negative;
+alter table products
+  add constraint products_price_not_negative
+  check (price_cents >= 0);
+
+-- Verify: expect six rows
+select conname as constraint_name
+from pg_constraint
+where conrelid in ('orders'::regclass, 'products'::regclass)
+  and contype = 'c'
+  and conname in (
+    'orders_payment_method_valid',
+    'orders_payment_status_valid',
+    'orders_fulfillment_status_valid',
+    'orders_totals_not_negative',
+    'products_stock_not_negative',
+    'products_price_not_negative'
+  )
+order by conname;
