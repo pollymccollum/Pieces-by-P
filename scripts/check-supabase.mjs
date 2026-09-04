@@ -149,6 +149,43 @@ if (!process.env.BREVO_API_KEY || !process.env.EMAIL_FROM) {
   ok(`emails send from ${process.env.EMAIL_FROM}`);
 }
 
+// 9b. Every column the app selects actually exists.
+//
+// A missing column doesn't look like a missing column at runtime: the query
+// errors, the loader falls back to an empty list, and the orders page renders
+// "No orders yet" with real orders sitting in the database. That is the whole
+// class of bug this section exists to catch — a migration written but never
+// run reads as a quiet, healthy-looking shop.
+//
+// PostgREST reports an unknown column even when RLS would block the read, so
+// this works with the public key alone.
+{
+  const NEEDED = [
+    ["products", "charm_text", "add-charm-text.sql"],
+    ["product_images", "focal_x", "add-photo-focus.sql"],
+    ["product_images", "zoom", "add-photo-focus.sql"],
+    ["orders", "archived_at", "add-order-archive.sql"],
+    ["orders", "confirmation_email", "add-email-status.sql"],
+  ];
+
+  const missing = [];
+  for (const [table, column, file] of NEEDED) {
+    const { error } = await supabase.from(table).select(column).limit(1);
+    if (error && /does not exist|schema cache/i.test(error.message)) {
+      missing.push({ table, column, file });
+    }
+  }
+
+  if (missing.length === 0) {
+    ok(`all ${NEEDED.length} app columns present`);
+  } else {
+    for (const m of missing) {
+      fail(`${m.table}.${m.column} missing — run supabase/${m.file}`);
+    }
+    warn("  -> or paste supabase/setup-new-project.sql, which contains all of them");
+  }
+}
+
 // 10. Stripe + service role
 //
 // The webhook is the only thing that marks a card order paid, and its secret

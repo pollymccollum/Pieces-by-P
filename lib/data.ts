@@ -170,6 +170,11 @@ export async function getProducts(): Promise<Product[]> {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
+  // Log before falling back. An empty list is indistinguishable from a
+  // healthy shop with nothing in it, so a query that fails — most often a
+  // migration that hasn't been run — otherwise renders as "nothing here"
+  // while the rows sit safely in the database.
+  if (error) console.error("[data] query failed:", error.message);
   if (error || !data) return [];
   return (data as ProductRow[]).map(toProduct);
 }
@@ -184,6 +189,11 @@ export async function getAllProductsForOwner(): Promise<Product[]> {
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 
+  // Log before falling back. An empty list is indistinguishable from a
+  // healthy shop with nothing in it, so a query that fails — most often a
+  // migration that hasn't been run — otherwise renders as "nothing here"
+  // while the rows sit safely in the database.
+  if (error) console.error("[data] query failed:", error.message);
   if (error || !data) return [];
   return (data as ProductRow[]).map(toProduct);
 }
@@ -223,6 +233,11 @@ export async function getOrdersForOwner(): Promise<Order[]> {
     )
     .order("created_at", { ascending: false }); // newest first
 
+  // Log before falling back. An empty list is indistinguishable from a
+  // healthy shop with nothing in it, so a query that fails — most often a
+  // migration that hasn't been run — otherwise renders as "nothing here"
+  // while the rows sit safely in the database.
+  if (error) console.error("[data] query failed:", error.message);
   if (error || !data) return [];
 
   return data.map((o) => ({
@@ -285,6 +300,11 @@ export async function getMessagesForOwner(): Promise<Message[]> {
     .select("id, name, email, body, handled, created_at")
     .order("created_at", { ascending: false });
 
+  // Log before falling back. An empty list is indistinguishable from a
+  // healthy shop with nothing in it, so a query that fails — most often a
+  // migration that hasn't been run — otherwise renders as "nothing here"
+  // while the rows sit safely in the database.
+  if (error) console.error("[data] query failed:", error.message);
   if (error || !data) return [];
 
   return data.map((m) => ({
