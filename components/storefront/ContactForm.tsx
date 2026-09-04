@@ -7,6 +7,8 @@ export function ContactForm({ fallbackEmail }: { fallbackEmail: string }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [body, setBody] = useState("");
+  // Honeypot. Hidden from people, irresistible to form-filling bots.
+  const [website, setWebsite] = useState("");
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -39,7 +41,7 @@ export function ContactForm({ fallbackEmail }: { fallbackEmail: string }) {
   const submit = () => {
     setError(null);
     start(async () => {
-      const res = await sendContactMessage({ name, email, body });
+      const res = await sendContactMessage({ name, email, body, website });
       if (res.ok) setSent(true);
       else setError(res.error);
     });
@@ -65,6 +67,31 @@ export function ContactForm({ fallbackEmail }: { fallbackEmail: string }) {
         placeholder="Custom colors, an initial, a question…"
         value={body}
         onChange={(e) => setBody(e.target.value)}
+      />
+      {/* Honeypot. Hidden from sighted users, from screen readers, and from
+          keyboard tab order — so anything that fills it in is a bot walking
+          the DOM. aria-hidden and tabIndex matter as much as the CSS: a
+          field that only LOOKS hidden traps real people using assistive
+          technology. */}
+      <input
+        type="text"
+        name="website"
+        value={website}
+        onChange={(e) => setWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: "hidden",
+          clipPath: "inset(50%)",
+          whiteSpace: "nowrap",
+          border: 0,
+        }}
       />
       <button
         className="pp-btn sage"

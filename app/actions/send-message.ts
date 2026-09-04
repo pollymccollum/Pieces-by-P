@@ -3,7 +3,12 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSiteSettings } from "@/lib/data";
 import { notifyOwnerOfMessage, sendContactAutoReply } from "@/lib/email";
-import { isRateLimited, RATE_LIMIT_MESSAGE } from "@/lib/rate-limit";
+import {
+  BUSY_MESSAGE,
+  isContactFormBusy,
+  isRateLimited,
+  RATE_LIMIT_MESSAGE,
+} from "@/lib/rate-limit";
 
 export type SendMessageResult = { ok: true } | { ok: false; error: string };
 
@@ -13,7 +18,14 @@ export async function sendContactMessage(input: {
   name: string;
   email: string;
   body: string;
+  // Hidden field. A person never sees it, so anything in it came from
+  // a bot filling every input on the page.
+  website?: string;
 }): Promise<SendMessageResult> {
+  // Answered like a success on purpose: telling a bot it was caught
+  // just invites a second attempt that works around the trap.
+  if ((input.website ?? "").trim()) return { ok: true };
+
   const name = (input.name ?? "").trim().slice(0, 200);
   const email = (input.email ?? "").trim().slice(0, 200);
   const body = (input.body ?? "").trim().slice(0, 4000);
@@ -26,6 +38,14 @@ export async function sendContactMessage(input: {
 
   if (await isRateLimited("messages", email)) {
     return { ok: false, error: RATE_LIMIT_MESSAGE };
+  }
+
+  // Site-wide ceiling. The per-email limit above caps one address; this
+  // is what stops someone cycling addresses to send mail from her
+  // domain to people who never asked for it, and burning the daily
+  // Brevo allowance that her real customers depend on.
+  if (await isContactFormBusy()) {
+    return { ok: false, error: BUSY_MESSAGE };
   }
 
   const supabase = getSupabaseServerClient();

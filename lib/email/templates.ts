@@ -57,7 +57,11 @@ function esc(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    // Single quotes too. Every attribute in these templates uses double
+    // quotes today, so this changes nothing — it stops the next template
+    // from being one single-quoted attribute away from an injection point.
+    .replace(/'/g, "&#39;");
 }
 
 // Owner-written wording arrives as plain text from a textarea. Blank lines
