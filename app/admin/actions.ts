@@ -652,7 +652,7 @@ export async function createManualOrder(
 
     // Customer still gets a confirmation for an order Polly took by hand.
     // She doesn't get the "new order" alert — she's the one entering it.
-    await sendNewOrderEmails({
+    const emailOutcome = await sendNewOrderEmails({
       orderNumber,
       customerName: ship.name,
       customerEmail: ship.email,
@@ -681,6 +681,17 @@ export async function createManualOrder(
       signoff: settings.emails.signoff,
       notifyOwner: false,
     });
+
+    // Record whether the receipt actually went out. Wrapped and ignored on
+    // failure: this is a note for Polly, and it must never be the reason a
+    // saved order reports an error.
+    if (emailOutcome) {
+      await supabase
+        .from("orders")
+        .update({ confirmation_email: emailOutcome })
+        .eq("id", orderId)
+        .then(undefined, () => {});
+    }
 
     revalidatePath("/admin/orders");
     revalidatePath("/admin/products");

@@ -808,6 +808,19 @@
 
 /* Archive is the safe habit, so it reads as a real button while Delete
    stays a quiet link beside it. */
+/* Amber, not red: nothing is broken and the order is safe — she just needs
+   to say something to the customer herself. */
+.oa-mailwarn {
+  margin: 14px 0 0;
+  background: #f4e4c6;
+  border: 1px solid #e0c68f;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #7d5615;
+  overflow-wrap: anywhere;
+}
 .oa-cardfoot {
   display: flex;
   align-items: center;

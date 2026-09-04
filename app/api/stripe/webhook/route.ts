@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         .eq("order_id", orderId),
     ]);
 
-    await sendNewOrderEmails({
+    const emailOutcome = await sendNewOrderEmails({
       orderNumber: updated.order_number,
       customerName: updated.customer_name,
       customerEmail: updated.customer_email,
@@ -141,6 +141,17 @@ export async function POST(req: NextRequest) {
       note: settings.emails.confirmationNote,
       signoff: settings.emails.signoff,
     });
+
+    // Record whether the receipt actually went out. Wrapped and ignored on
+    // failure: this is a note for Polly, and it must never be the reason a
+    // saved order reports an error.
+    if (emailOutcome) {
+      await supabase
+        .from("orders")
+        .update({ confirmation_email: emailOutcome })
+        .eq("id", orderId)
+        .then(undefined, () => {});
+    }
   } catch (err) {
     // The payment is recorded; a failed email must not make Stripe retry and
     // risk double-processing. Log and move on.

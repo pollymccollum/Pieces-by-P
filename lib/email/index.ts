@@ -1,6 +1,7 @@
 import "server-only";
 import type { Order } from "@/lib/types";
 import { sendMail, isEmailConfigured } from "./client";
+import { orderEmailBudgetSpent } from "@/lib/rate-limit";
 import {
   contactReceived,
   orderConfirmation,
@@ -35,20 +36,43 @@ function siteUrl(): string {
 
 // Sends the customer confirmation and the owner alert for a brand new order.
 // Never throws: emails are best-effort, and the order already exists.
+// What happened to the customer's copy, so the caller can record it on
+// the order. Polly is already looking at that screen; Netlify's function
+// logs are the one place nobody is watching.
+export type ConfirmationOutcome = "sent" | "failed" | "skipped" | null;
+
 export async function sendNewOrderEmails(
   data: OrderEmailData & { notifyOwner?: boolean }
-): Promise<void> {
-  if (!isEmailConfigured()) return;
+): Promise<ConfirmationOutcome> {
+  // null, not 'failed': email being switched off is a configuration
+  // choice, not a fault, and shouldn't raise a flag on every order.
+  if (!isEmailConfigured()) return null;
 
+  // The owner's alert always goes — it's one email, and it's how she
+  // finds out she has an order at all.
   const jobs = [];
-  // customerEmail is required at checkout, but stays nullable in the type so
-  // older orders (and any created before that rule) can't crash this.
-  if (data.customerEmail) jobs.push(sendMail(orderConfirmation(data)));
   if (data.notifyOwner !== false) {
     jobs.push(sendMail(ownerNewOrder(data, `${siteUrl()}/admin/orders`)));
   }
 
+  // customerEmail is required at checkout, but stays nullable in the type
+  // so older orders (and any created before that rule) can't crash this.
+  let outcome: ConfirmationOutcome = null;
+  if (data.customerEmail) {
+    if (await orderEmailBudgetSpent()) {
+      // Far past a real trading hour. The order is already saved and
+      // Polly is still told; only the automatic receipt pauses, and it
+      // says so on the order rather than vanishing.
+      console.warn(`[email] order confirmation skipped — hourly budget spent (${data.orderNumber})`);
+      outcome = "skipped";
+    } else {
+      const res = await sendMail(orderConfirmation(data));
+      outcome = res.sent ? "sent" : "failed";
+    }
+  }
+
   await Promise.allSettled(jobs);
+  return outcome;
 }
 
 export async function sendShippedEmail(order: Order, brand: string): Promise<void> {

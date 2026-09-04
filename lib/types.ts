@@ -217,6 +217,9 @@ export type Order = {
   // Set when Polly clears a finished order off the board. The order keeps
   // every detail; it just stops competing for attention. null = on the board.
   archived_at: string | null;
+  // Whether the customer's confirmation actually went out. null = email
+  // isn't switched on, which is a setting rather than a fault.
+  confirmation_email: "sent" | "failed" | "skipped" | null;
   items: OrderItem[];
 };
 

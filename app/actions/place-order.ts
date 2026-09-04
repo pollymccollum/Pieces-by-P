@@ -135,7 +135,7 @@ export async function placeVenmoOrder(
     // Confirmation to the customer, alert to Polly. Deliberately awaited so
     // serverless doesn't kill the request before they go out, but wrapped so
     // a mail failure can never turn a saved order into an error.
-    await sendNewOrderEmails({
+    const emailOutcome = await sendNewOrderEmails({
       orderNumber,
       customerName: ship.name,
       customerEmail: ship.email,
@@ -163,6 +163,17 @@ export async function placeVenmoOrder(
       note: settings.emails.confirmationNote,
       signoff: settings.emails.signoff,
     });
+
+    // Record whether the receipt actually went out. Wrapped and ignored on
+    // failure: this is a note for Polly, and it must never be the reason a
+    // saved order reports an error.
+    if (emailOutcome) {
+      await stockDb
+        .from("orders")
+        .update({ confirmation_email: emailOutcome })
+        .eq("id", orderId)
+        .then(undefined, () => {});
+    }
 
     return {
       ok: true,

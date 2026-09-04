@@ -439,6 +439,19 @@ export function OrdersBoard({
               </div>
             )}
 
+            {/* A confirmation that didn't reach the customer, said where she
+                is already looking rather than in a log nobody reads. */}
+            {(o.confirmation_email === "failed" || o.confirmation_email === "skipped") && (
+              <p className="oa-mailwarn">
+                {o.confirmation_email === "failed"
+                  ? "The confirmation email didn't send."
+                  : "The confirmation email was held back — a lot of orders came in at once."}{" "}
+                {o.customer_email
+                  ? `Worth messaging ${o.customer_email} yourself.`
+                  : "No email address on this order."}
+              </p>
+            )}
+
             <div className="oa-statusrow">
               <span className="oa-statuslbl">Status</span>
               <div className="oa-seg">

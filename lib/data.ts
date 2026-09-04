@@ -219,7 +219,7 @@ export async function getOrdersForOwner(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, archived_at, order_items(id, product_name, unit_price_cents, quantity, customization, line_total_cents)"
+      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, archived_at, confirmation_email, order_items(id, product_name, unit_price_cents, quantity, customization, line_total_cents)"
     )
     .order("created_at", { ascending: false }); // newest first
 
@@ -231,6 +231,7 @@ export async function getOrdersForOwner(): Promise<Order[]> {
     created_at: o.created_at,
     dateLabel: formatOrderDate(o.created_at),
     archived_at: o.archived_at ?? null,
+    confirmation_email: o.confirmation_email ?? null,
     customer_name: o.customer_name,
     customer_email: o.customer_email,
     customer_phone: o.customer_phone,
