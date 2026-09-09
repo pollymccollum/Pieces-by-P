@@ -24,10 +24,11 @@ export function MessagesBoard({ messages }: { messages: Message[] }) {
 
   return (
     <>
-      <h1 className="ad-h2">Custom orders</h1>
+      <h1 className="ad-h2">Special requests</h1>
       <p className="ad-lead">
-        Requests and questions sent through the contact form on your website.
-        Tick one off once you&apos;ve replied.
+        Questions and custom-piece requests sent through the contact form on
+        your website. Nothing here has been paid for &mdash; if one turns into
+        a sale, add it on the Orders tab. Tick one off once you&apos;ve replied.
       </p>
 
       {messages.length > 0 && (
@@ -48,7 +49,7 @@ export function MessagesBoard({ messages }: { messages: Message[] }) {
       {messages.length === 0 ? (
         <div className="ad-card">
           <div className="ad-empty">
-            No custom order requests yet.
+            No special requests yet.
             <br />
             They&apos;ll appear here when someone uses the contact form.
           </div>

@@ -8,7 +8,10 @@ import { signOut } from "./actions-auth";
 // Orders first: it's what she opens every day.
 const TABS = [
   { href: "/admin/orders", label: "Orders" },
-  { href: "/admin/messages", label: "Custom orders" },
+  // "Special requests", not "Custom orders": sitting next to Orders, two
+  // tabs starting with the same word invited exactly the confusion that
+  // nothing here has money attached to it yet.
+  { href: "/admin/messages", label: "Special requests" },
   { href: "/admin/products", label: "Pieces" },
   { href: "/admin/content", label: "Site content" },
 ];

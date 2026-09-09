@@ -96,7 +96,7 @@ Rough order of operations. Items marked ⏳ have a waiting period.
 >
 > **Done:** card payments tested end to end; Stripe webhook live with both
 > `checkout.session.completed` and `checkout.session.expired`; contact form
-> saving to the Custom orders tab; stock tracking; pre-launch security pass
+> saving to the Special requests tab; stock tracking; pre-launch security pass
 > (see section 9).
 >
 > **Left:** email provider, Polly's inventory, then go live.
