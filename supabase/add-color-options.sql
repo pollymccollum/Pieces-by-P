@@ -29,17 +29,30 @@ alter table order_items
 
 -- A colourway is a short label like 'Red/Blue/White'. The admin caps each at
 -- 60 characters and the list at 40; the database backs both up.
+--
+-- The per-element test lives in a function because a CHECK constraint may not
+-- contain a subquery, and there is no way to test every element of an array
+-- inline without one. A CHECK may call a function, and the function may
+-- contain the query — which is the standard way around this.
+--
+-- IMMUTABLE because it reads nothing but its own argument, which is what
+-- makes it legal in a constraint at all.
+create or replace function color_options_valid(opts text[])
+returns boolean
+language sql
+immutable
+set search_path = pg_catalog
+as $$
+  select coalesce(bool_and(length(o) between 1 and 60), true)
+  from unnest(opts) as o;
+$$;
+
 alter table products drop constraint if exists products_color_options_sane;
 alter table products
   add constraint products_color_options_sane
   check (
-    array_length(color_options, 1) is null
-    or (
-      array_length(color_options, 1) <= 40
-      and array_length(color_options, 1) = (
-        select count(*) from unnest(color_options) o where length(o) between 1 and 60
-      )
-    )
+    coalesce(array_length(color_options, 1), 0) <= 40
+    and color_options_valid(color_options)
   );
 
 -- Verify: expect two rows
