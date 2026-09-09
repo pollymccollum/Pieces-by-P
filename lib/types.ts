@@ -56,6 +56,13 @@ export type Product = {
   material: string;
   description: string;
   tag: string | null;
+  // Colourways this piece comes in, in the order Polly wants them
+  // shown, e.g. ['Red/Blue/White', 'Orange/Navy']. Empty means the
+  // piece has one look and the picker doesn't appear.
+  //
+  // Not to be confused with `colors` below, which is hex values for
+  // the illustration shown before a piece has photos.
+  color_options: string[];
   charm: string | null; // 'heart' | 'star' | 'coin' | 'text' | null
   // Wording on the charm when charm === 'text'. Ignored otherwise.
   charm_text: string | null;
@@ -144,6 +151,10 @@ export type CartItem = {
   productId: string;
   qty: number;
   note: string;
+  // The colourway chosen, or "" for a piece that offers none. Two of
+  // the same piece in different colours are two lines, the same way
+  // two different notes already are.
+  color: string;
 };
 
 export type CartLine = CartItem & { product: Product };
@@ -187,6 +198,9 @@ export type OrderItem = {
   unit_price_cents: number;
   quantity: number;
   customization: string | null; // the customer's "make it yours" note
+  // The colourway chosen at checkout. Copied onto the order rather
+  // than referenced, so renaming a colourway can't rewrite history.
+  color: string | null;
   line_total_cents: number;
 };
 

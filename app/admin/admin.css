@@ -571,6 +571,55 @@
 .oa-item .q {
   color: var(--ink-soft);
 }
+/* Reads as a spec she works from, not a comment she replies to — so it
+   gets a chip rather than the note's quiet italics. */
+/* Her colourway list: one row each, reorderable, because the order here is
+   the order customers see. */
+.ad-colorlist {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.ad-colorrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--hair);
+  background: var(--surface);
+}
+.ad-colorrow:last-child {
+  border-bottom: none;
+}
+.ad-colorname {
+  flex: 1;
+  font-size: 13.5px;
+  overflow-wrap: anywhere;
+}
+.ad-coloradd {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: center;
+}
+.ad-coloradd .pp-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.oa-color {
+  display: inline-block;
+  margin: 3px 0 2px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: var(--sage-soft);
+  color: var(--sage-deep);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
 .oa-note {
   font-size: 12.5px;
   color: var(--sage-deep);

@@ -36,6 +36,26 @@ export function ProductEditor({
   // the lettered charm.
   const [charm, setCharm] = useState(product.charm ?? "");
   const [charmText, setCharmText] = useState(product.charm_text ?? "");
+  const [colorOptions, setColorOptions] = useState<string[]>(product.color_options ?? []);
+  const [newColor, setNewColor] = useState("");
+
+  const [colorError, setColorError] = useState<string | null>(null);
+
+  const addColor = () => {
+    const value = newColor.trim();
+    setColorError(null);
+    if (!value) return;
+    if (colorOptions.some((c) => c.toLowerCase() === value.toLowerCase())) {
+      setColorError(`${value} is already on the list.`);
+      return;
+    }
+    if (colorOptions.length >= 40) {
+      setColorError("That's as many colours as one piece can have.");
+      return;
+    }
+    setColorOptions((prev) => [...prev, value]);
+    setNewColor("");
+  };
 
   const save = (formData: FormData) => {
     setError(null);
@@ -214,6 +234,88 @@ export function ProductEditor({
           <div className="ad-field">
             <span className="ad-lbl">Description</span>
             <textarea className="pp-textarea" name="description" defaultValue={product.description} />
+          </div>
+
+          {/* Colourways. Sent as one JSON field so the order she sets
+              here is the order customers see. */}
+          <input type="hidden" name="colorOptions" value={JSON.stringify(colorOptions)} />
+          <div className="ad-field">
+            <span className="ad-lbl">Color choices</span>
+            <span className="ad-help">
+              Add a button for each colourway you make this piece in, and the
+              customer picks one before adding it to their cart. Leave it
+              empty and no colour buttons show at all.
+            </span>
+
+            {colorOptions.length > 0 && (
+              <ul className="ad-colorlist">
+                {colorOptions.map((c, i) => (
+                  <li key={c} className="ad-colorrow">
+                    <span className="ad-colorname">{c}</span>
+                    <button
+                      type="button"
+                      className="ad-icon"
+                      title="Move up"
+                      disabled={i === 0}
+                      onClick={() =>
+                        setColorOptions((prev) => {
+                          const next = [...prev];
+                          [next[i - 1], next[i]] = [next[i], next[i - 1]];
+                          return next;
+                        })
+                      }
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      className="ad-icon"
+                      title="Move down"
+                      disabled={i === colorOptions.length - 1}
+                      onClick={() =>
+                        setColorOptions((prev) => {
+                          const next = [...prev];
+                          [next[i], next[i + 1]] = [next[i + 1], next[i]];
+                          return next;
+                        })
+                      }
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      className="ad-icon"
+                      title={`Remove ${c}`}
+                      onClick={() => setColorOptions((prev) => prev.filter((x) => x !== c))}
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div className="ad-coloradd">
+              <input
+                className="pp-input"
+                value={newColor}
+                maxLength={60}
+                placeholder="e.g. Red/Blue/White"
+                onChange={(e) => setNewColor(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enter adds the colour rather than submitting the whole
+                  // form, which is what it would otherwise do here.
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addColor();
+                  }
+                }}
+              />
+              <button type="button" className="oa-archive" onClick={addColor}>
+                Add
+              </button>
+            </div>
+            {colorError && <span className="pp-hint">{colorError}</span>}
           </div>
 
           <div className="ad-grid2">

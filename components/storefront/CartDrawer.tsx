@@ -49,6 +49,7 @@ export function CartDrawer({
                 </div>
                 <div>
                   <div className="pp-lname">{l.product.name}</div>
+                  {l.color && <div className="pp-lcolor">{l.color}</div>}
                   {l.note && <div className="pp-lnote">{l.note}</div>}
                   <div className="pp-mini">
                     <button onClick={() => onSetQty(l.lineId, l.qty - 1)} aria-label="Decrease">

@@ -100,7 +100,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
 }
 
 const PRODUCT_COLUMNS =
-  "id, name, category, price_cents, material, description, tag, charm, charm_text, colors, custom, stock, active, sort_order, product_images(id, url, sort_order, focal_x, focal_y, zoom)";
+  "id, name, category, price_cents, material, description, tag, charm, charm_text, colors, color_options, custom, stock, active, sort_order, product_images(id, url, sort_order, focal_x, focal_y, zoom)";
 
 type ProductRow = {
   id: string;
@@ -112,6 +112,7 @@ type ProductRow = {
   tag: string | null;
   charm: string | null;
   charm_text: string | null;
+  color_options: string[] | null;
   colors: unknown;
   custom: boolean;
   stock: number | null;
@@ -140,6 +141,7 @@ function toProduct(p: ProductRow): Product {
     tag: p.tag,
     charm: p.charm,
     charm_text: p.charm_text ?? null,
+    color_options: Array.isArray(p.color_options) ? p.color_options : [],
     colors: Array.isArray(p.colors) ? (p.colors as string[]) : [],
     custom: p.custom,
     stock: p.stock,
@@ -229,7 +231,7 @@ export async function getOrdersForOwner(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, archived_at, confirmation_email, order_items(id, product_name, unit_price_cents, quantity, customization, line_total_cents)"
+      "id, order_number, created_at, customer_name, customer_email, customer_phone, customer_instagram, address1, address2, city, state, zip, country, notes, subtotal_cents, shipping_cents, total_cents, payment_method, payment_status, paid_at, fulfillment_status, archived_at, confirmation_email, order_items(id, product_name, unit_price_cents, quantity, customization, color, line_total_cents)"
     )
     .order("created_at", { ascending: false }); // newest first
 

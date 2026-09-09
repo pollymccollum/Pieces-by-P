@@ -22,10 +22,13 @@ export function ProductModal({
   inCart: number; // already in the cart, so we don't let them exceed stock
   customBox: CustomOrderContent;
   onClose: () => void;
-  onAddToCart: (product: Product, qty: number, note: string) => void;
+  onAddToCart: (product: Product, qty: number, note: string, color: string) => void;
 }) {
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
+  // Preselect the first colourway so a customer can never reach Add to
+  // cart having silently chosen nothing. Pieces with no options keep "".
+  const [color, setColor] = useState(product.color_options[0] ?? "");
   const [gIdx, setGIdx] = useState(0);
 
   const imgs = product.images;
@@ -105,6 +108,29 @@ export function ProductModal({
                 It used to render always, with the flag changing nothing but
                 the wording — so unticking the box in the admin appeared to
                 do nothing at all. */}
+            {/* Colourways, above the make-it-yours box: a customer picks
+                from what she actually makes before describing anything
+                she'd like changed. */}
+            {product.color_options.length > 0 && (
+              <div className="pp-colorpick">
+                <span className="pp-spec">Color</span>
+                <div className="pp-coloropts" role="radiogroup" aria-label="Color">
+                  {product.color_options.map((opt) => (
+                    <button
+                      key={opt}
+                      type="button"
+                      role="radio"
+                      aria-checked={color === opt}
+                      className={`pp-coloropt ${color === opt ? "on" : ""}`}
+                      onClick={() => setColor(opt)}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {product.custom && (
               <div className="pp-custom">
                 {/* Both the heading and the greyed-out example are hers,
@@ -156,7 +182,7 @@ export function ProductModal({
                   <button
                     className="pp-btn"
                     disabled={canAdd < 1}
-                    onClick={() => onAddToCart(product, Math.min(qty, canAdd), note)}
+                    onClick={() => onAddToCart(product, Math.min(qty, canAdd), note, color)}
                   >
                     Add to cart · {money(product.price_cents * qty)}
                   </button>

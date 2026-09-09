@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
       getSiteSettings(),
       supabase
         .from("order_items")
-        .select("product_name, quantity, line_total_cents, customization")
+        .select("product_name, quantity, line_total_cents, customization, color")
         .eq("order_id", orderId),
     ]);
 
@@ -122,6 +122,7 @@ export async function POST(req: NextRequest) {
         qty: i.quantity,
         lineTotalCents: i.line_total_cents,
         note: i.customization,
+        color: i.color,
       })),
       subtotalCents: updated.subtotal_cents,
       shippingCents: updated.shipping_cents,

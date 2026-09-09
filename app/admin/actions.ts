@@ -390,6 +390,24 @@ export async function updateProduct(id: string, formData: FormData): Promise<Act
   if (!name) return { ok: false, error: "Give the piece a name." };
 
   const tag = String(formData.get("tag") ?? "").trim();
+
+  // Colourways arrive as one JSON array from the editor rather than as
+  // numbered form fields, so reordering and removing don't depend on
+  // index names staying in step.
+  let colorOptions: string[] = [];
+  try {
+    const raw = JSON.parse(String(formData.get("colorOptions") ?? "[]"));
+    if (Array.isArray(raw)) {
+      colorOptions = raw
+        .map((c) => String(c ?? "").trim().slice(0, 60))
+        .filter(Boolean)
+        .slice(0, 40);
+      // Two identical buttons would be indistinguishable to a customer.
+      colorOptions = Array.from(new Set(colorOptions));
+    }
+  } catch {
+    return { ok: false, error: "Couldn't read the colour list. Try again." };
+  }
   const charm = String(formData.get("charm") ?? "").trim();
   // Only stored for the lettered charm. Clearing it when the shape is
   // something else stops a stale word reappearing if she switches back.
@@ -418,6 +436,7 @@ export async function updateProduct(id: string, formData: FormData): Promise<Act
       material: String(formData.get("material") ?? ""),
       description: String(formData.get("description") ?? ""),
       tag: tag === "" ? null : tag,
+      color_options: colorOptions,
       charm: charm === "" ? null : charm,
       charm_text: charmText === "" ? null : charmText,
       custom: formData.get("custom") === "on",
@@ -661,6 +680,7 @@ export async function createManualOrder(
         qty: l.quantity,
         lineTotalCents: l.line_total_cents,
         note: l.customization,
+        color: l.color,
       })),
       subtotalCents: subtotal_cents,
       shippingCents: shipping_cents,

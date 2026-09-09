@@ -349,6 +349,9 @@ export function OrdersBoard({
                   </span>
                   <span>{money(it.line_total_cents)}</span>
                 </div>
+                {/* The colourway sits above the note: it's what she has to
+                    make, where the note is what she has to read. */}
+                {it.color && <div className="oa-color">{it.color}</div>}
                 {it.customization && (
                   <div className="oa-note">make it yours: {it.customization}</div>
                 )}

@@ -95,19 +95,28 @@ export function Storefront({
   const qtyInCart = (productId: string) =>
     cart.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0);
 
-  const addToCart = (product: Product, qty: number, note: string) => {
+  const addToCart = (product: Product, qty: number, note: string, color: string) => {
     const cleanNote = note.trim();
+    const cleanColor = color.trim();
     setCart((prev) => {
       const already = prev.filter((l) => l.productId === product.id).reduce((s, l) => s + l.qty, 0);
       const room = remainingFor(product.stock, already);
       const add = Math.min(qty, room);
       if (add < 1) return prev;
 
-      const existing = prev.find((l) => l.productId === product.id && l.note === cleanNote);
+      // Same piece in a different colourway is a different line, the
+      // same way a different note already is — she has to make two
+      // distinct things, so the cart should show two.
+      const existing = prev.find(
+        (l) => l.productId === product.id && l.note === cleanNote && l.color === cleanColor
+      );
       if (existing) {
         return prev.map((l) => (l === existing ? { ...l, qty: l.qty + add } : l));
       }
-      return [...prev, { lineId: newLineId(), productId: product.id, qty: add, note: cleanNote }];
+      return [
+        ...prev,
+        { lineId: newLineId(), productId: product.id, qty: add, note: cleanNote, color: cleanColor },
+      ];
     });
     setActiveId(null);
     setCartOpen(true);

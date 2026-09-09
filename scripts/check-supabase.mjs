@@ -166,6 +166,8 @@ if (!process.env.BREVO_API_KEY || !process.env.EMAIL_FROM) {
     ["product_images", "zoom", "add-photo-focus.sql"],
     ["orders", "archived_at", "add-order-archive.sql"],
     ["orders", "confirmation_email", "add-email-status.sql"],
+    ["products", "color_options", "add-color-options.sql"],
+    ["order_items", "color", "add-color-options.sql"],
   ];
 
   const missing = [];

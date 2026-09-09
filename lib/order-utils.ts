@@ -4,7 +4,12 @@ import { stockState, type Product, type SiteSettingsData } from "@/lib/types";
 // entry. Kept out of the "use server" action files, which may only export
 // async functions.
 
-export type CartInput = { productId: string; qty: number; note: string };
+export type CartInput = {
+  productId: string;
+  qty: number;
+  note: string;
+  color?: string;
+};
 
 export type ShippingInput = {
   name: string;
@@ -26,6 +31,7 @@ export type PricedLine = {
   unit_price_cents: number;
   quantity: number;
   customization: string | null;
+  color: string | null;
   line_total_cents: number;
 };
 
@@ -124,12 +130,33 @@ export function priceOrder(
 
     const note = (item.note ?? "").trim().slice(0, 500) || null;
 
+    // Checked against the piece's own list, not taken on trust. The
+    // browser could send any string, and an order asking for a colourway
+    // Polly doesn't make is worse than one with no colour at all.
+    const wanted = (item.color ?? "").trim();
+    const color =
+      wanted && product.color_options.includes(wanted) ? wanted : null;
+
+    if (wanted && !color) {
+      return {
+        ok: false,
+        error: `That colour isn't available for ${product.name}. Please pick one from the list.`,
+      };
+    }
+
+    // Offered but not chosen shouldn't happen — the picker preselects the
+    // first — but a piece with colourways must never reach her without one.
+    if (!color && product.color_options.length > 0) {
+      return { ok: false, error: `Please choose a colour for ${product.name}.` };
+    }
+
     lines.push({
       product_id: product.id,
       product_name: product.name,
       unit_price_cents: product.price_cents,
       quantity: qty,
       customization: note,
+      color,
       line_total_cents: product.price_cents * qty,
     });
   }

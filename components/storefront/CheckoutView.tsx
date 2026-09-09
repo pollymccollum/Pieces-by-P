@@ -70,6 +70,7 @@ export function CheckoutView({
       productId: l.product.id,
       qty: l.qty,
       note: l.note,
+      color: l.color,
     }));
 
     if (pay === "card") {

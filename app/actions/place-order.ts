@@ -144,6 +144,7 @@ export async function placeVenmoOrder(
         qty: l.quantity,
         lineTotalCents: l.line_total_cents,
         note: l.customization,
+        color: l.color,
       })),
       subtotalCents: subtotal_cents,
       shippingCents: shipping_cents,

@@ -17,7 +17,13 @@ export type OrderEmailData = {
   orderNumber: string;
   customerName: string;
   customerEmail: string | null;
-  items: { name: string; qty: number; lineTotalCents: number; note: string | null }[];
+  items: {
+    name: string;
+    qty: number;
+    lineTotalCents: number;
+    note: string | null;
+    color: string | null;
+  }[];
   subtotalCents: number;
   shippingCents: number;
   totalCents: number;
@@ -93,6 +99,7 @@ function itemsHtml(d: OrderEmailData): string {
       <tr>
         <td style="padding:6px 0;font-size:14px;color:${INK};">
           ${esc(i.name)} <span style="color:${INK_SOFT};">× ${i.qty}</span>
+          ${i.color ? `<div style="font-size:12px;color:${SAGE_DEEP};padding-top:2px;">${esc(i.color)}</div>` : ""}
           ${i.note ? `<div style="font-size:12px;color:${SAGE_DEEP};font-style:italic;padding-top:2px;">make it yours: ${esc(i.note)}</div>` : ""}
         </td>
         <td style="padding:6px 0;font-size:14px;text-align:right;white-space:nowrap;color:${INK};">${money(i.lineTotalCents)}</td>
@@ -123,6 +130,7 @@ function itemsText(d: OrderEmailData): string {
   const lines = d.items.map(
     (i) =>
       `  ${i.name} x${i.qty}  ${money(i.lineTotalCents)}` +
+      (i.color ? `\n    color: ${i.color}` : "") +
       (i.note ? `\n    make it yours: ${i.note}` : "")
   );
   return [

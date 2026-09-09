@@ -23,6 +23,7 @@ const FILES = [
   "add-charm-text.sql",
   "add-email-status.sql",
   "add-status-constraints.sql",
+  "add-color-options.sql",
 ];
 
 // Deliberately left out of the combined file, each for its own reason.

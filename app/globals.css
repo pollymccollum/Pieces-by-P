@@ -765,6 +765,51 @@ button {
   text-align: center;
   font-size: 14px;
 }
+/* Colourways, sitting above the make-it-yours box.
+   Buttons that wrap onto as many rows as the piece needs, so a piece with
+   two options and one with twelve both read correctly without a scrollbar
+   or a dropdown hiding what's available. */
+.pp-colorpick {
+  margin-bottom: 18px;
+}
+.pp-coloropts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.pp-coloropt {
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-family: var(--serif);
+  color: var(--ink);
+  line-height: 1.2;
+  text-align: center;
+}
+.pp-coloropt:hover {
+  border-color: var(--sage);
+}
+/* The chosen one is filled, not merely outlined: at a glance a customer
+   should see which they picked without comparing border weights. */
+.pp-coloropt.on {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #fff;
+}
+.pp-coloropt:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 2px;
+}
+/* In the cart, the colourway reads as part of what was ordered. */
+.pp-lcolor {
+  font-size: 12px;
+  color: var(--sage-deep);
+  margin-top: 2px;
+}
+
 .pp-custom {
   display: flex;
   flex-direction: column;
