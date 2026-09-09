@@ -349,11 +349,29 @@ export function OrdersBoard({
                   </span>
                   <span>{money(it.line_total_cents)}</span>
                 </div>
-                {/* The colourway sits above the note: it's what she has to
-                    make, where the note is what she has to read. */}
-                {it.color && <div className="oa-color">{it.color}</div>}
-                {it.customization && (
-                  <div className="oa-note">make it yours: {it.customization}</div>
+                {/* Everything she has to get right about this line, in one
+                    labelled block under it. Loose lines of text under a price
+                    read as decoration and get skimmed past; a bordered block
+                    with its own headings reads as a spec sheet.
+
+                    The colour comes first and largest: it's a fact she has to
+                    build to, where the note is a request she has to read and
+                    interpret. */}
+                {(it.color || it.customization) && (
+                  <dl className="oa-spec">
+                    {it.color && (
+                      <div className="oa-specrow">
+                        <dt>Color chosen</dt>
+                        <dd className="oa-specvalue">{it.color}</dd>
+                      </div>
+                    )}
+                    {it.customization && (
+                      <div className="oa-specrow">
+                        <dt>Their request</dt>
+                        <dd className="oa-specnote">{it.customization}</dd>
+                      </div>
+                    )}
+                  </dl>
                 )}
               </div>
             ))}
