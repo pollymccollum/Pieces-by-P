@@ -219,11 +219,13 @@ function formatOrderDate(iso: string): string {
 }
 
 export type OrderStats = {
+  activeCount: number;
   newCount: number;
   makingCount: number;
   shippedCount: number;
   paidThisWeekCents: number;
   awaitingPaymentCount: number;
+  archivedCount: number;
 };
 
 export async function getOrdersForOwner(): Promise<Order[]> {
@@ -281,6 +283,7 @@ export function summariseOrders(orders: Order[]): OrderStats {
   const live = orders.filter((o) => !o.archived_at);
 
   return {
+    activeCount: live.length,
     newCount: live.filter((o) => o.fulfillment_status === "new").length,
     makingCount: live.filter((o) => o.fulfillment_status === "making").length,
     shippedCount: live.filter((o) => o.fulfillment_status === "shipped").length,
@@ -290,6 +293,7 @@ export function summariseOrders(orders: Order[]): OrderStats {
       .filter((o) => o.payment_status === "paid" && new Date(o.created_at).getTime() >= weekAgo)
       .reduce((sum, o) => sum + o.total_cents, 0),
     awaitingPaymentCount: live.filter((o) => o.payment_status === "pending").length,
+    archivedCount: orders.length - live.length,
   };
 }
 

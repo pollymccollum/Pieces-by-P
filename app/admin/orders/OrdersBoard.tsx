@@ -9,6 +9,7 @@ import {
   type Order,
 } from "@/lib/types";
 import { money } from "@/lib/format";
+import type { OrderStats } from "@/lib/data";
 import {
   deleteOrder,
   sendVenmoReminder,
@@ -17,10 +18,28 @@ import {
   setPaymentStatus,
 } from "../actions";
 
-// "Archived" is a view, not a fulfilment stage — every other filter shows
-// only orders still on the board.
-const FILTERS = ["All", "New", "Making", "Shipped", "Archived"] as const;
+// The tiles across the top ARE the filter. There used to be a row of stat
+// tiles showing counts and a separate row of pills doing the filtering —
+// two controls for the same five buckets, and the tiles, being the bigger
+// and more obvious of the two, did nothing when tapped.
+//
+// 'Awaiting payment' cuts across the others: an order can be New and unpaid
+// at once. It earns a place anyway because it is the one bucket that is a
+// to-do list rather than a stage — these are the people to chase.
+//
+// 'Archived' is not a stage either; every other bucket hides archived
+// orders, and this is the only way to see them.
+const FILTERS = ["all", "new", "making", "shipped", "unpaid", "archived"] as const;
 type Filter = (typeof FILTERS)[number];
+
+const FILTER_LABELS: Record<Filter, string> = {
+  all: "All orders",
+  new: "New to start",
+  making: "Making",
+  shipped: "Shipped",
+  unpaid: "Awaiting payment",
+  archived: "Archived",
+};
 
 const METHODS = [
   { key: "all", label: "All payments" },
@@ -41,16 +60,12 @@ export function OrdersBoard({
   venmoHandle,
 }: {
   orders: Order[];
-  stats: {
-    newCount: number;
-    makingCount: number;
-    shippedCount: number;
-    paidThisWeekCents: number;
-    awaitingPaymentCount: number;
-  };
+  // The shared type rather than a copy of it: this drifted once already when
+  // the tiles started needing counts the local copy didn't list.
+  stats: OrderStats;
   venmoHandle: string;
 }) {
-  const [filter, setFilter] = useState<Filter>("All");
+  const [filter, setFilter] = useState<Filter>("all");
   const [method, setMethod] = useState<MethodKey>("all");
   const [copied, setCopied] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -68,17 +83,33 @@ export function OrdersBoard({
     // Archived orders are hidden everywhere except their own view. That's
     // the whole feature: the board shows what still needs her.
     let list =
-      filter === "Archived"
+      filter === "archived"
         ? orders.filter((o) => o.archived_at)
         : orders.filter((o) => !o.archived_at);
 
     if (method !== "all") list = list.filter((o) => o.payment_method === method);
-    if (filter !== "All" && filter !== "Archived")
-      list = list.filter((o) => o.fulfillment_status === filter.toLowerCase());
+
+    if (filter === "unpaid") {
+      list = list.filter((o) => o.payment_status === "pending");
+    } else if (filter !== "all" && filter !== "archived") {
+      list = list.filter((o) => o.fulfillment_status === filter);
+    }
     return list;
   }, [orders, filter, method]);
 
-  const archivedCount = useMemo(() => orders.filter((o) => o.archived_at).length, [orders]);
+  // One count per tile, from the same numbers the server already worked out,
+  // so a tile can never disagree with the list it opens.
+  const counts: Record<Filter, number> = useMemo(
+    () => ({
+      all: stats.activeCount,
+      new: stats.newCount,
+      making: stats.makingCount,
+      shipped: stats.shippedCount,
+      unpaid: stats.awaitingPaymentCount,
+      archived: stats.archivedCount,
+    }),
+    [stats]
+  );
 
   // Venmo money only lands when Polly confirms it, so surface how much is
   // still outstanding while she's looking at the Venmo view.
@@ -186,34 +217,40 @@ export function OrdersBoard({
         </Link>
       </div>
 
+      {/* Tap a tile to see that set of orders. The count and the control are
+          the same object, so there is nothing to reconcile between them. */}
       <div className="oa-stats">
-        <div className="oa-stat hl">
-          <div className="num">{stats.newCount}</div>
-          <div className="lbl">New to start</div>
-        </div>
-        <div className="oa-stat">
-          <div className="num">{stats.makingCount}</div>
-          <div className="lbl">Making</div>
-        </div>
-        <div className="oa-stat">
-          <div className="num">{stats.shippedCount}</div>
-          <div className="lbl">Shipped</div>
-        </div>
-        <div className="oa-stat">
-          <div className="num">{money(stats.paidThisWeekCents)}</div>
-          <div className="lbl">Paid this week</div>
-        </div>
-        {stats.awaitingPaymentCount > 0 && (
-          <div className="oa-stat warn">
-            <div className="num">{stats.awaitingPaymentCount}</div>
-            <div className="lbl">Awaiting payment</div>
-          </div>
-        )}
+        {FILTERS.map((f) => {
+          const count = counts[f];
+          // Archived stays out of the way until there is something in it —
+          // a permanent empty tile would just be one more thing to read.
+          if (f === "archived" && count === 0 && filter !== "archived") return null;
+          return (
+            <button
+              key={f}
+              className={`oa-stat ${filter === f ? "on" : ""} ${
+                f === "unpaid" && count > 0 ? "warn" : ""
+              }`}
+              aria-pressed={filter === f}
+              onClick={() => setFilter(f)}
+            >
+              <span className="num">{count}</span>
+              <span className="lbl">{FILTER_LABELS[f]}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Payment method comes first: card and Venmo are different jobs.
-          Card is automatic; Venmo needs her to confirm the money arrived. */}
-      <div className="oa-filters" style={{ marginBottom: 0 }}>
+      {/* Money, not a bucket — there is no list of orders to open behind it,
+          so it stays a figure rather than pretending to be a sixth tile. */}
+      <p className="oa-weekly">
+        <b>{money(stats.paidThisWeekCents)}</b> paid this week
+      </p>
+
+      {/* A second axis, not a second copy of the one above: card and Venmo are
+          different jobs. Card is automatic; Venmo needs her to confirm the
+          money arrived. */}
+      <div className="oa-filters">
         {METHODS.map((m) => (
           <button
             key={m.key}
@@ -221,19 +258,6 @@ export function OrdersBoard({
             onClick={() => setMethod(m.key)}
           >
             {m.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="oa-filters">
-        {FILTERS.map((f) => (
-          <button
-            key={f}
-            className={`oa-filter ${filter === f ? "on" : ""}`}
-            onClick={() => setFilter(f)}
-          >
-            {f}
-            {f === "Archived" && archivedCount > 0 ? ` (${archivedCount})` : ""}
           </button>
         ))}
       </div>
@@ -271,18 +295,17 @@ export function OrdersBoard({
                 <br />
                 They&apos;ll appear here automatically as soon as someone checks out.
               </>
-            ) : method === "venmo" ? (
-              <>No Venmo orders{filter !== "All" ? ` in ${filter.toLowerCase()}` : ""} right now.</>
-            ) : method === "card" ? (
-              <>No card orders{filter !== "All" ? ` in ${filter.toLowerCase()}` : ""} right now.</>
-            ) : filter === "Archived" ? (
+            ) : filter === "archived" ? (
               <>
                 Nothing archived yet.
                 <br />
                 Archiving clears a finished order off the board without losing it.
               </>
             ) : (
-              <>Nothing in {filter.toLowerCase()} right now.</>
+              <>
+                No {method === "venmo" ? "Venmo " : method === "card" ? "card " : ""}
+                orders under {FILTER_LABELS[filter].toLowerCase()} right now.
+              </>
             )}
           </div>
         </div>

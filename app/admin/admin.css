@@ -453,18 +453,37 @@
   flex-wrap: wrap;
   margin: 4px 0 6px;
 }
+/* These are buttons now, not read-outs — the count and the control are one
+   object. They have to LOOK pressable, or she is back to wondering why the
+   biggest things on the screen do nothing. */
 .oa-stat {
   background: var(--surface);
   border: 1px solid var(--hair);
   border-radius: 12px;
   padding: 12px 16px;
   flex: 1;
-  min-width: 120px;
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  font-family: inherit;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.oa-stat:hover {
+  border-color: var(--sage);
+}
+.oa-stat:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 2px;
 }
 .oa-stat .num {
   font-family: var(--serif);
   font-size: 26px;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .oa-stat .lbl {
   font-size: 10.5px;
@@ -473,12 +492,48 @@
   color: var(--ink-soft);
   margin-top: 5px;
 }
-.oa-stat.hl {
-  background: var(--sage-soft);
-  border-color: var(--sage);
+/* The selected tile is filled, matching how the payment pills below already
+   show their selection, so the two rows read as the same kind of control. */
+.oa-stat.on {
+  background: var(--ink);
+  border-color: var(--ink);
 }
-.oa-stat.hl .num {
-  color: var(--sage-deep);
+.oa-stat.on .num,
+.oa-stat.on .lbl {
+  color: var(--cream);
+}
+/* Unpaid orders are money not yet collected — amber whether or not it's the
+   tile she is currently looking at. */
+.oa-stat.warn {
+  background: #f4e4c6;
+  border-color: #e0c68f;
+}
+.oa-stat.warn .num {
+  color: #a8701e;
+}
+.oa-stat.warn .lbl {
+  color: #8a6a2e;
+}
+.oa-stat.warn.on {
+  background: #a8701e;
+  border-color: #a8701e;
+}
+.oa-stat.warn.on .num,
+.oa-stat.warn.on .lbl {
+  color: #fff;
+}
+/* Money, sitting between the tiles and the payment pills. Deliberately not a
+   tile: there is no list of orders behind it to open. */
+.oa-weekly {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.oa-weekly b {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink);
 }
 
 .oa-filters {
@@ -748,14 +803,10 @@
   cursor: wait;
 }
 
-/* Venmo / manual payment */
-.oa-stat.warn {
-  background: #f4e4c6;
-  border-color: #e0c68f;
-}
-.oa-stat.warn .num {
-  color: #a8701e;
-}
+/* Venmo / manual payment.
+   The .oa-stat.warn rules that used to sit here moved up beside the other
+   tile styles — duplicated down here they silently overrode the selected
+   state, because they came later in the file. */
 .oa-venmobar {
   background: #f4e4c6;
   border: 1px solid #e0c68f;
