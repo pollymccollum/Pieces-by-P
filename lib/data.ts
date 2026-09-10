@@ -61,6 +61,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     placeholder: "Color swaps, initials, team colors, sizing…",
   },
   emails: {
+    notifyOnOrder: true,
     confirmationNote: "Each piece is handmade to order and ships in about a week.",
     signoff: "Thank you for supporting a small handmade shop.",
     contactReply:

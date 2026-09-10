@@ -143,6 +143,8 @@ export async function POST(req: NextRequest) {
       signoff: settings.emails.signoff,
       // Replies reach her, not the send-only from-address.
       contactEmail: settings.contact.email,
+      // She's already told us whether she wants telling.
+      notifyOwner: settings.emails.notifyOnOrder,
     });
 
     // Record whether the receipt actually went out. Wrapped and ignored on

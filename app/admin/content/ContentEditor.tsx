@@ -595,6 +595,23 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           for you and can&apos;t be deleted by accident.
         </p>
 
+        <label
+          className="ad-toggle"
+          style={{ textTransform: "none", fontSize: 13, letterSpacing: 0, marginBottom: 16 }}
+        >
+          <input
+            type="checkbox"
+            checked={s.emails.notifyOnOrder}
+            onChange={(e) => patch({ emails: { ...s.emails, notifyOnOrder: e.target.checked } })}
+          />
+          Email me when an order comes in
+        </label>
+        <span className="ad-help" style={{ marginTop: -8, marginBottom: 16, display: "block" }}>
+          Every order shows on your Orders tab either way. Turn this off if the
+          emails are burying the messages you actually need to answer — but then
+          nothing tells you an order arrived until you next open the admin.
+        </span>
+
         <div className="ad-field">
           <span className="ad-lbl">Order confirmation — your message</span>
           <textarea

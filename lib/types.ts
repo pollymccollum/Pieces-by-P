@@ -142,6 +142,14 @@ export type ContactContent = {
 // order number, items, totals, address, the Venmo instructions — stay
 // generated, so editing the friendly part can't break the useful part.
 export type EmailContent = {
+  // Whether an order emails her as well as appearing on her board.
+  //
+  // Genuinely arguable both ways: the order is already in the admin, so the
+  // email is a duplicate — and a duplicate that buries the contact messages
+  // that actually need her to write back. Against that, without it she has
+  // no signal at all until she next opens the admin, which on a Friday night
+  // order means Monday. Hers to settle, not ours.
+  notifyOnOrder: boolean;
   // Sits under "Thank you, <first name>!" in the order confirmation.
   confirmationNote: string;
   // Closing line on the confirmation, above the footer.
