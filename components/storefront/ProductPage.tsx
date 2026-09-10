@@ -92,8 +92,13 @@ export function ProductPage({
         </Link>
 
         <div className="pp-piecegrid">
-          {/* Every photo on the page at once, which is what a page buys you
-              over a box. The big one is whichever she is looking at. */}
+          {/* Filmstrip beside the main photo, the convention in jewellery
+              retail for a good reason: the price and Add to cart never move
+              while someone looks through the angles. A stacked scroll would
+              carry the buy button off the screen, and with the three or four
+              phone photos a piece actually has, it makes a long page for
+              little return. On a phone the strip runs underneath instead —
+              a vertical one there would eat width the photo needs. */}
           <div className="pp-piecegallery">
             <div className="pp-piecemain">
               {mainImg ? (
@@ -128,6 +133,7 @@ export function ProductPage({
                     className={`pp-piecethumb ${gIdx === i ? "on" : ""}`}
                     onClick={() => setGIdx(i)}
                     aria-label={`Photo ${i + 1} of ${imgs.length}`}
+                    aria-current={gIdx === i}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img.url} alt="" style={focalStyle(img)} />

@@ -622,15 +622,20 @@ button {
   gap: 30px;
   align-items: start;
 }
-/* Capped, because the thumbnails below are their own row — the main photo
-   does NOT shrink as more are added, so left uncapped it just grew with the
+/* Capped, because the thumbnails are their own track — the main photo does
+   NOT shrink as more are added, so left uncapped it just grew with the
    window until a single necklace filled the screen. */
 .pp-piecegallery {
-  max-width: 440px;
+  max-width: 520px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .pp-piecemain {
   position: relative;
+  flex: 1;
+  min-width: 0;
   aspect-ratio: var(--tile-ratio, 1 / 1);
   border: 1px solid var(--hair);
   border-radius: 16px;
@@ -647,15 +652,19 @@ button {
   height: 100%;
   object-fit: var(--photo-fit, cover);
 }
-/* Every photo visible at once — the reason for a page instead of a box.
-   They wrap onto as many rows as the piece has, rather than scrolling. */
+/* On a phone: a horizontal strip under the photo, scrolled sideways if the
+   piece has more than fits. A vertical strip here would take width away from
+   the photo itself, which is the thing worth the space on a small screen. */
 .pp-piecethumbs {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  display: flex;
   gap: 8px;
-  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
 }
 .pp-piecethumb {
+  flex: none;
+  width: 68px;
   aspect-ratio: 1 / 1;
   padding: 0;
   border: 1px solid var(--hair);
@@ -663,6 +672,10 @@ button {
   overflow: hidden;
   background: var(--surface);
   cursor: pointer;
+}
+.pp-piecethumb:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 2px;
 }
 .pp-piecethumb img {
   width: 100%;
@@ -1669,8 +1682,27 @@ button {
   .pp-piecegrid {
     /* The gallery takes what it needs up to its cap; the detail column gets
        the rest rather than being pushed wide by a half-empty photo column. */
-    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
     gap: 48px;
+  }
+  /* Filmstrip down the left, main photo beside it. */
+  .pp-piecegallery {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .pp-piecethumbs {
+    order: -1;
+    flex-direction: column;
+    overflow-x: visible;
+    overflow-y: auto;
+    /* Roughly six thumbnails before it scrolls, so a piece with a dozen
+       photos can't stretch the page taller than the photo beside it. */
+    max-height: 460px;
+    padding-right: 2px;
+  }
+  .pp-piecethumb {
+    width: 72px;
   }
   .pp-piecewrap {
     padding: 28px 42px 0;
