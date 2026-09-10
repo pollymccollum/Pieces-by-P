@@ -504,6 +504,20 @@ export async function moveProduct(id: string, direction: -1 | 1): Promise<Action
 
 // ── photos ──────────────────────────────────────────────────
 
+// iPhones hand over HEIC unless the picker converts, and it passes every
+// "is this an image?" test while Chrome and Firefox refuse to draw it. The
+// upload would succeed and the photo would then be broken for most of her
+// customers — a failure she'd only find out about from someone telling her.
+// Better to refuse it here with something she can act on.
+function unsupportedImage(file: File): string | null {
+  const type = (file.type || "").toLowerCase();
+  const name = (file.name || "").toLowerCase();
+  if (type.includes("heic") || type.includes("heif") || /\.(heic|heif)$/.test(name)) {
+    return "iPhone HEIC photos don't show in most browsers. In Settings → Camera → Formats choose “Most Compatible”, or open the photo and share it as a JPEG.";
+  }
+  return null;
+}
+
 export async function uploadProductPhoto(productId: string, formData: FormData): Promise<ActionResult> {
   await requireOwner();
   const supabase = await getSupabaseAuthClient();
@@ -515,6 +529,8 @@ export async function uploadProductPhoto(productId: string, formData: FormData):
   if (!file.type.startsWith("image/")) {
     return { ok: false, error: "That file isn't an image." };
   }
+  const unsupported = unsupportedImage(file);
+  if (unsupported) return { ok: false, error: unsupported };
   if (file.size > 10 * 1024 * 1024) {
     return { ok: false, error: "That photo is larger than 10MB. Try a smaller one." };
   }
@@ -763,6 +779,8 @@ async function uploadSiteImage(
   if (!file.type.startsWith("image/")) {
     return { ok: false, error: "That file isn't an image." };
   }
+  const unsupported = unsupportedImage(file);
+  if (unsupported) return { ok: false, error: unsupported };
   if (file.size > 10 * 1024 * 1024) {
     return { ok: false, error: "That image is larger than 10MB. Try a smaller one." };
   }

@@ -66,13 +66,32 @@ export function ProductEditor({
     });
   };
 
-  const addPhoto = (file: File) => {
+  // Takes as many as she picks. One request each, in order, rather than all
+  // at once: each upload reads the max sort_order to decide where the photo
+  // goes, so firing them in parallel would race and land them in a jumbled
+  // order — and the order is the gallery.
+  //
+  // Stops at the first failure. Carrying on would bury the reason under a
+  // pile of later attempts, and if one photo was too big the next one
+  // probably is too.
+  const addPhotos = (files: File[]) => {
     setError(null);
-    const fd = new FormData();
-    fd.set("photo", file);
+    if (files.length === 0) return;
+
     start(async () => {
-      const res = await uploadProductPhoto(product.id, fd);
-      if (!res.ok) setError(res.error);
+      for (const [i, file] of files.entries()) {
+        const fd = new FormData();
+        fd.set("photo", file);
+        const res = await uploadProductPhoto(product.id, fd);
+        if (!res.ok) {
+          setError(
+            files.length > 1
+              ? `${file.name}: ${res.error}${i > 0 ? ` (the first ${i} uploaded fine)` : ""}`
+              : res.error
+          );
+          return;
+        }
+      }
     });
   };
 
@@ -145,25 +164,26 @@ export function ProductEditor({
                   )}
                 </div>
               ))}
-              <label className="ad-upload" title="Add a photo">
+              <label className="ad-upload" title="Add photos — you can pick several at once">
                 +
                 <input
                   ref={fileRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   hidden
                   disabled={pending}
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) addPhoto(f);
+                    addPhotos(Array.from(e.target.files ?? []));
                     e.target.value = "";
                   }}
                 />
               </label>
             </div>
             <p className="ad-help" style={{ marginTop: 6 }}>
-              The first photo is the cover shown in the shop. With no photo, the
-              beaded illustration below is used instead.
+              Pick several at once if you like. The first photo is the cover shown
+              in the shop; with no photo, the beaded illustration below is used
+              instead. Photos up to 10MB, as JPEG or PNG.
             </p>
             {positioningId && (
               <PhotoPositioner
