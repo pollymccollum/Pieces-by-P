@@ -19,6 +19,7 @@ import {
 } from "@/lib/types";
 import { saveSettings, uploadAboutPhoto, uploadHeroPhoto, uploadLogo } from "../actions";
 import { FontPicker } from "./FontPicker";
+import { downscaleImage } from "@/lib/image-downscale";
 import type { FontKey, FontSlot } from "@/lib/fonts";
 
 // About and Contact are their own pages now, so there is nothing here to
@@ -78,34 +79,52 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
 
   const uploadHero = (file: File) => {
     setError(null);
-    const fd = new FormData();
-    fd.set("photo", file);
     start(async () => {
-      const res = await uploadHeroPhoto(fd);
-      if (res.ok && res.url) patch({ heroImageUrl: res.url });
-      else if (!res.ok) setError(res.error);
+      try {
+        const fd = new FormData();
+        fd.set("photo", await downscaleImage(file));
+        const res = await uploadHeroPhoto(fd);
+        if (res.ok && res.url) patch({ heroImageUrl: res.url });
+        else if (!res.ok) setError(res.error);
+      } catch {
+        setError(
+          "That image couldn't be uploaded — it may be too large or in a format browsers can't read. Try one saved as JPEG."
+        );
+      }
     });
   };
 
   const uploadAbout = (file: File) => {
     setError(null);
-    const fd = new FormData();
-    fd.set("photo", file);
     start(async () => {
-      const res = await uploadAboutPhoto(fd);
-      if (res.ok && res.url) patch({ aboutImageUrl: res.url });
-      else if (!res.ok) setError(res.error);
+      try {
+        const fd = new FormData();
+        fd.set("photo", await downscaleImage(file));
+        const res = await uploadAboutPhoto(fd);
+        if (res.ok && res.url) patch({ aboutImageUrl: res.url });
+        else if (!res.ok) setError(res.error);
+      } catch {
+        setError(
+          "That image couldn't be uploaded — it may be too large or in a format browsers can't read. Try one saved as JPEG."
+        );
+      }
     });
   };
 
   const uploadLogoFile = (file: File) => {
     setError(null);
-    const fd = new FormData();
-    fd.set("photo", file);
     start(async () => {
-      const res = await uploadLogo(fd);
-      if (res.ok && res.url) patch({ logoUrl: res.url });
-      else if (!res.ok) setError(res.error);
+      try {
+        const fd = new FormData();
+        fd.set("photo", await downscaleImage(file));
+        const res = await uploadLogo(fd);
+        if (res.ok && res.url) patch({ logoUrl: res.url });
+        else if (!res.ok) setError(res.error);
+      } catch {
+        setError(
+          "That image couldn't be uploaded — it may be too large or in a format browsers can't read. Try one saved as JPEG."
+        );
+      }
     });
   };
 

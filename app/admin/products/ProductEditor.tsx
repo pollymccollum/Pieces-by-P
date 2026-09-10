@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { PHOTO_SHAPES, type PhotoShape, type Product } from "@/lib/types";
 import { StrandArt } from "@/components/storefront/visuals";
 import { PhotoPositioner } from "./PhotoPositioner";
+import { downscaleImage } from "@/lib/image-downscale";
 import {
   deleteProduct,
   deleteProductPhoto,
@@ -80,14 +81,23 @@ export function ProductEditor({
 
     start(async () => {
       for (const [i, file] of files.entries()) {
-        const fd = new FormData();
-        fd.set("photo", file);
-        const res = await uploadProductPhoto(product.id, fd);
-        if (!res.ok) {
+        const done = i > 0 ? ` (the first ${i} uploaded fine)` : "";
+        try {
+          // Shrunk here, in her browser, before it crosses the wire.
+          const shrunk = await downscaleImage(file);
+          const fd = new FormData();
+          fd.set("photo", shrunk);
+          const res = await uploadProductPhoto(product.id, fd);
+          if (!res.ok) {
+            setError(files.length > 1 ? `${file.name}: ${res.error}${done}` : res.error);
+            return;
+          }
+        } catch {
+          // A rejected server action throws rather than returning, and an
+          // unhandled throw here took down the whole admin behind the
+          // customer-facing error page. Say it plainly and stay on the page.
           setError(
-            files.length > 1
-              ? `${file.name}: ${res.error}${i > 0 ? ` (the first ${i} uploaded fine)` : ""}`
-              : res.error
+            `${file.name} couldn't be uploaded — it may be too large or in a format browsers can't read. Try a photo saved as JPEG.${done}`
           );
           return;
         }
