@@ -163,6 +163,8 @@ export async function placeVenmoOrder(
       // Her wording, edited at /admin/content.
       note: settings.emails.confirmationNote,
       signoff: settings.emails.signoff,
+      // Replies reach her, not the send-only from-address.
+      contactEmail: settings.contact.email,
     });
 
     // Record whether the receipt actually went out. Wrapped and ignored on

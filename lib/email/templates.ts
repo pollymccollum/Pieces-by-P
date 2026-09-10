@@ -34,6 +34,8 @@ export type OrderEmailData = {
   // Polly's own wording, from the site editor. See EmailContent.
   note: string;
   signoff: string;
+  // Where a reply should go. The from-address has no mailbox behind it.
+  contactEmail?: string;
 };
 
 // `location` comes from site settings, so the owner moving town is an

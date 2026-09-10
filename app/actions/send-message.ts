@@ -69,6 +69,7 @@ export async function sendContactMessage(input: {
         brand: settings.brand,
         location: settings.contact.location,
         reply: settings.emails.contactReply,
+        contactEmail: settings.contact.email,
       }),
     ]);
   } catch (err) {

@@ -15,6 +15,22 @@ import {
 
 export { isEmailConfigured };
 
+// Where a customer's reply should land.
+//
+// Mail goes out FROM orders@piecesbyp.com once Brevo verifies the domain,
+// but that address has no mailbox behind it — the domain has no MX records
+// at all — so a reply to it would vanish and the customer would think they
+// had been ignored. Reply-To points at the address she actually reads.
+//
+// Taken from the Contact email she already fills in, so it is hers to
+// change and is the same address the contact page shows. Empty or
+// obviously unset means no Reply-To at all rather than a broken one.
+function replyToFor(contactEmail: string | undefined): string | undefined {
+  const address = (contactEmail ?? "").trim();
+  if (!address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) return undefined;
+  return address;
+}
+
 export function formatAddress(a: {
   name: string;
   address1: string;
@@ -66,7 +82,10 @@ export async function sendNewOrderEmails(
       console.warn(`[email] order confirmation skipped — hourly budget spent (${data.orderNumber})`);
       outcome = "skipped";
     } else {
-      const res = await sendMail(orderConfirmation(data));
+      const res = await sendMail({
+        replyTo: replyToFor(data.contactEmail),
+        ...orderConfirmation(data),
+      });
       outcome = res.sent ? "sent" : "failed";
     }
   }
@@ -75,11 +94,16 @@ export async function sendNewOrderEmails(
   return outcome;
 }
 
-export async function sendShippedEmail(order: Order, brand: string): Promise<void> {
+export async function sendShippedEmail(
+  order: Order,
+  brand: string,
+  contactEmail?: string
+): Promise<void> {
   if (!isEmailConfigured() || !order.customer_email) return;
 
-  await sendMail(
-    orderShipped({
+  await sendMail({
+    replyTo: replyToFor(contactEmail),
+    ...orderShipped({
       brand,
       orderNumber: order.order_number,
       customerName: order.customer_name,
@@ -92,22 +116,27 @@ export async function sendShippedEmail(order: Order, brand: string): Promise<voi
         state: order.state,
         zip: order.zip,
       }),
-    })
-  );
+    }),
+  });
 }
 
-export async function sendPaymentReceivedEmail(order: Order, brand: string): Promise<void> {
+export async function sendPaymentReceivedEmail(
+  order: Order,
+  brand: string,
+  contactEmail?: string
+): Promise<void> {
   if (!isEmailConfigured() || !order.customer_email) return;
 
-  await sendMail(
-    paymentReceived({
+  await sendMail({
+    replyTo: replyToFor(contactEmail),
+    ...paymentReceived({
       brand,
       orderNumber: order.order_number,
       customerName: order.customer_name,
       customerEmail: order.customer_email,
       totalCents: order.total_cents,
-    })
-  );
+    }),
+  });
 }
 
 // Tells Polly a contact-form message arrived. The message is already saved
@@ -131,6 +160,7 @@ export async function sendContactAutoReply(args: {
   brand: string;
   location: string;
   reply: string;
+  contactEmail?: string;
 }): Promise<void> {
   if (!isEmailConfigured() || !args.to) return;
   const mail = contactReceived({
@@ -140,7 +170,7 @@ export async function sendContactAutoReply(args: {
     location: args.location,
     reply: args.reply,
   });
-  await sendMail({ ...mail, to: args.to });
+  await sendMail({ ...mail, to: args.to, replyTo: replyToFor(args.contactEmail) });
 }
 
 // Nudges a customer whose Venmo hasn't arrived. Triggered by hand from the
@@ -149,7 +179,8 @@ export async function sendVenmoReminderEmail(
   order: Order,
   brand: string,
   venmoHandle: string,
-  location: string
+  location: string,
+  contactEmail?: string
 ): Promise<{ sent: boolean; reason?: string }> {
   if (!isEmailConfigured()) return { sent: false, reason: "email not configured" };
   if (!order.customer_email) return { sent: false, reason: "no email address" };
@@ -162,5 +193,9 @@ export async function sendVenmoReminderEmail(
     venmoHandle,
     location,
   });
-  return sendMail({ ...mail, to: order.customer_email });
+  return sendMail({
+    ...mail,
+    to: order.customer_email,
+    replyTo: replyToFor(contactEmail),
+  });
 }

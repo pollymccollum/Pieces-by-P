@@ -499,7 +499,10 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         <p className="ad-sec">Contact page</p>
         <p className="ad-help" style={{ marginBottom: 14 }}>
           Its own page at <b>/contact</b>, with your message form. Instagram
-          and email become tappable links.
+          and email become tappable links. <b>Email</b> is also where replies
+          go when a customer answers one of your automatic emails — those are
+          sent from an address that can&apos;t receive, so put the inbox you
+          actually read here.
         </p>
         <div className="ad-field">
           <span className="ad-lbl">Heading</span>
