@@ -622,6 +622,13 @@ button {
   gap: 30px;
   align-items: start;
 }
+/* Capped, because the thumbnails below are their own row — the main photo
+   does NOT shrink as more are added, so left uncapped it just grew with the
+   window until a single necklace filled the screen. */
+.pp-piecegallery {
+  max-width: 440px;
+  width: 100%;
+}
 .pp-piecemain {
   position: relative;
   aspect-ratio: var(--tile-ratio, 1 / 1);
@@ -1660,7 +1667,9 @@ button {
     padding: 66px 42px 0;
   }
   .pp-piecegrid {
-    grid-template-columns: 1.05fr 0.95fr;
+    /* The gallery takes what it needs up to its cap; the detail column gets
+       the rest rather than being pushed wide by a half-empty photo column. */
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
     gap: 48px;
   }
   .pp-piecewrap {

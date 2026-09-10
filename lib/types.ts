@@ -122,6 +122,13 @@ export type CustomOrderContent = {
   placeholder: string;
 };
 
+// The two lines above the shop grid. Hardcoded until now, which made
+// them the only headings on the storefront she couldn't reach.
+export type ShopContent = {
+  eyebrowScript: string;
+  title: string;
+};
+
 export type ContactContent = {
   heading: string;
   instagram: string;
@@ -359,6 +366,7 @@ export type SiteSettingsData = {
   accent: AccentKey;
   sections: SectionSetting[];
   hero: HeroContent;
+  shop: ShopContent;
   about: AboutContent;
   contact: ContactContent;
   customBox: CustomOrderContent;

@@ -367,6 +367,50 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </div>
       </div>
 
+      {/* ---- shop headings ---- */}
+      {/* Sits between Hero and About because that is the order they appear in
+          on the page, and she navigates this editor by scrolling it like the
+          site. */}
+      <div className="ad-card">
+        <p className="ad-sec">Shop heading</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          The two lines above your pieces on the home page. Leave either empty
+          to hide that line.
+        </p>
+        <div className="ad-grid2">
+          <div className="ad-field">
+            <span className="ad-lbl">Handwritten label</span>
+            <input
+              className="pp-input"
+              maxLength={60}
+              value={s.shop.eyebrowScript}
+              onChange={(e) => patch({ shop: { ...s.shop, eyebrowScript: e.target.value } })}
+            />
+            <FontPicker
+              slot="shopEyebrowScript"
+              value={s.fonts?.shopEyebrowScript}
+              sample={s.shop.eyebrowScript}
+              onChange={setFont}
+            />
+          </div>
+          <div className="ad-field">
+            <span className="ad-lbl">Heading</span>
+            <input
+              className="pp-input"
+              maxLength={80}
+              value={s.shop.title}
+              onChange={(e) => patch({ shop: { ...s.shop, title: e.target.value } })}
+            />
+            <FontPicker
+              slot="shopTitle"
+              value={s.fonts?.shopTitle}
+              sample={s.shop.title}
+              onChange={setFont}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* ---- about ---- */}
       <div className="ad-card">
         <p className="ad-sec">About page</p>

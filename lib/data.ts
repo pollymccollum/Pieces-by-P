@@ -45,6 +45,10 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     lede: "Beaded necklaces, stacks, chokers, and charms, made to order in Easley, South Carolina. Pick your piece, tell us your colors, and we'll make it yours.",
     cta: "Shop the collection",
   },
+  shop: {
+    eyebrowScript: "the collection",
+    title: "Shop by piece",
+  },
   about: {
     eyebrowScript: "about",
     title: "Made by hand, one piece at a time",
@@ -90,6 +94,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     ...FALLBACK_SETTINGS,
     ...row,
     hero: { ...FALLBACK_SETTINGS.hero, ...row.hero },
+    shop: { ...FALLBACK_SETTINGS.shop, ...row.shop },
     about: { ...FALLBACK_SETTINGS.about, ...row.about },
     contact: { ...FALLBACK_SETTINGS.contact, ...row.contact },
     // Merged like the rest: a settings row written before this existed

@@ -157,6 +157,8 @@ export function Storefront({
         products={products}
         categories={settings.categories}
         category={category}
+        shop={settings.shop}
+        fonts={settings.fonts}
         onCategoryChange={setCategory}
       />
     ),

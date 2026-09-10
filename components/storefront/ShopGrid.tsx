@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { stockState, type Product } from "@/lib/types";
+import { stockState, type Product, type ShopContent } from "@/lib/types";
+import { fontStyle, type FontChoices } from "@/lib/fonts";
 import Link from "next/link";
 import { money } from "@/lib/format";
 import { productPath } from "@/lib/product-url";
@@ -11,11 +12,15 @@ export function ShopGrid({
   products,
   categories,
   category,
+  shop,
+  fonts,
   onCategoryChange,
 }: {
   products: Product[];
   categories: string[];
   category: string;
+  shop: ShopContent;
+  fonts: FontChoices;
   onCategoryChange: (c: string) => void;
 }) {
   const cats = useMemo(() => ["All", ...categories], [categories]);
@@ -27,10 +32,18 @@ export function ShopGrid({
   return (
     <section id="shop" className="pp-section">
       <div className="pp-wrap">
-        <p className="pp-eyebrow-c">
-          <span className="pp-script">the collection</span>
-        </p>
-        <h2 className="pp-h2">Shop by piece</h2>
+        {shop.eyebrowScript.trim() && (
+          <p className="pp-eyebrow-c">
+            <span className="pp-script" style={fontStyle(fonts, "shopEyebrowScript")}>
+              {shop.eyebrowScript}
+            </span>
+          </p>
+        )}
+        {shop.title.trim() && (
+          <h2 className="pp-h2" style={fontStyle(fonts, "shopTitle")}>
+            {shop.title}
+          </h2>
+        )}
         <div className="pp-filter">
           {cats.map((c) => (
             <button key={c} className={`pp-cat ${category === c ? "on" : ""}`} onClick={() => onCategoryChange(c)}>
