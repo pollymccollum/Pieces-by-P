@@ -2,7 +2,9 @@
 
 import { useMemo } from "react";
 import { stockState, type Product } from "@/lib/types";
+import Link from "next/link";
 import { money } from "@/lib/format";
+import { productPath } from "@/lib/product-url";
 import { ProductVisual } from "./ProductVisual";
 
 export function ShopGrid({
@@ -10,13 +12,11 @@ export function ShopGrid({
   categories,
   category,
   onCategoryChange,
-  onSelectProduct,
 }: {
   products: Product[];
   categories: string[];
   category: string;
   onCategoryChange: (c: string) => void;
-  onSelectProduct: (id: string) => void;
 }) {
   const cats = useMemo(() => ["All", ...categories], [categories]);
   const shown = useMemo(
@@ -50,40 +50,33 @@ export function ShopGrid({
 
               return (
                 <div key={p.id} className={`pp-card ${soldOut ? "soldout" : ""}`}>
-                  <button
-                    className="pp-ph"
-                    onClick={() => onSelectProduct(p.id)}
-                    style={{ padding: 0, border: "1px solid var(--hair)" }}
-                  >
-                    {/* Sold-out pieces stay visible but greyed, so the shop
-                        doesn't look emptier than it is and shoppers can see
-                        what she makes. */}
-                    {!soldOut && p.tag && (
-                      <span className={`pp-tagpill ${p.tag === "New" ? "new" : ""}`}>{p.tag}</span>
-                    )}
-                    <ProductVisual product={p} size={88} />
-                    {soldOut && (
-                      <span className="pp-soldout">
-                        <span>Sold out</span>
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => onSelectProduct(p.id)}
-                    style={{ background: "none", border: "none", padding: 0, textAlign: "left" }}
-                  >
-                    <div className="pp-cardname">{p.name}</div>
-                    <div className="pp-mat">{p.material}</div>
-                    {st.kind === "low" && (
-                      <div className="pp-lowstock">
-                        Only {st.left} left
-                      </div>
-                    )}
-                    <div className="pp-cardmeta">
+                  {/* One link wrapping the whole tile rather than two buttons.
+                      A real link means middle-click, open-in-new-tab and
+                      "copy link address" all work, which is most of the point
+                      of pieces having their own pages. */}
+                  <Link href={productPath(p)} className="pp-cardlink">
+                    <span className="pp-ph">
+                      {/* Sold-out pieces stay visible but greyed, so the shop
+                          doesn't look emptier than it is and shoppers can see
+                          what she makes. */}
+                      {!soldOut && p.tag && (
+                        <span className={`pp-tagpill ${p.tag === "New" ? "new" : ""}`}>{p.tag}</span>
+                      )}
+                      <ProductVisual product={p} size={88} />
+                      {soldOut && (
+                        <span className="pp-soldout">
+                          <span>Sold out</span>
+                        </span>
+                      )}
+                    </span>
+                    <span className="pp-cardname">{p.name}</span>
+                    <span className="pp-mat">{p.material}</span>
+                    {st.kind === "low" && <span className="pp-lowstock">Only {st.left} left</span>}
+                    <span className="pp-cardmeta">
                       <span className="pp-price">{money(p.price_cents)}</span>
                       <span className="pp-view">{soldOut ? "Sold out" : "View"}</span>
-                    </div>
-                  </button>
+                    </span>
+                  </Link>
                 </div>
               );
             })

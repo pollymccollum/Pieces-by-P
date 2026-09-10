@@ -14,7 +14,6 @@ import {
 import { Header } from "./Header";
 import { Hero } from "./Hero";
 import { ShopGrid } from "./ShopGrid";
-import { ProductModal } from "./ProductModal";
 import { CartDrawer } from "./CartDrawer";
 import { CheckoutView } from "./CheckoutView";
 import { fontStyle } from "@/lib/fonts";
@@ -24,12 +23,6 @@ import type { PlacedOrder } from "@/app/actions/place-order";
 import type { ShippingInput } from "@/lib/order-utils";
 import { Footer } from "./Footer";
 import { useCart } from "./useCart";
-
-function newLineId() {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2, 10);
-}
 
 // Sections come from the database, where the owner sets order and visibility.
 // Anything missing (an older settings row, or a section added in a later
@@ -51,7 +44,6 @@ export function Storefront({
   cardAvailable: boolean;
 }) {
   const [category, setCategory] = useState("All");
-  const [activeId, setActiveId] = useState<string | null>(null);
   // Persisted in the browser, not in this component: About and Contact are
   // their own routes now, and a cart that emptied itself when someone read
   // her story would quietly cost sales.
@@ -63,8 +55,6 @@ export function Storefront({
   const [cartOpen, setCartOpen] = useState(() => search.get("cart") === "1");
   const [view, setView] = useState<"shop" | "checkout" | "confirmed">("shop");
   const [placed, setPlaced] = useState<{ order: PlacedOrder; ship: ShippingInput } | null>(null);
-
-  const activeProduct = products.find((p) => p.id === activeId) ?? null;
 
   const cartLines: CartLine[] = useMemo(
     () =>
@@ -90,37 +80,6 @@ export function Storefront({
   const flatShipCents = Math.round(settings.flatShip * 100);
   const shipCents = subtotalCents === 0 || subtotalCents >= freeShipOverCents ? 0 : flatShipCents;
   const totalCents = subtotalCents + shipCents;
-
-  // How many of a piece are already in the cart, across all its note variants.
-  const qtyInCart = (productId: string) =>
-    cart.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0);
-
-  const addToCart = (product: Product, qty: number, note: string, color: string) => {
-    const cleanNote = note.trim();
-    const cleanColor = color.trim();
-    setCart((prev) => {
-      const already = prev.filter((l) => l.productId === product.id).reduce((s, l) => s + l.qty, 0);
-      const room = remainingFor(product.stock, already);
-      const add = Math.min(qty, room);
-      if (add < 1) return prev;
-
-      // Same piece in a different colourway is a different line, the
-      // same way a different note already is — she has to make two
-      // distinct things, so the cart should show two.
-      const existing = prev.find(
-        (l) => l.productId === product.id && l.note === cleanNote && l.color === cleanColor
-      );
-      if (existing) {
-        return prev.map((l) => (l === existing ? { ...l, qty: l.qty + add } : l));
-      }
-      return [
-        ...prev,
-        { lineId: newLineId(), productId: product.id, qty: add, note: cleanNote, color: cleanColor },
-      ];
-    });
-    setActiveId(null);
-    setCartOpen(true);
-  };
 
   // Raising a line's quantity is capped by what's left, counting the other
   // lines of the same piece (someone can have two lines with different notes).
@@ -199,7 +158,6 @@ export function Storefront({
         categories={settings.categories}
         category={category}
         onCategoryChange={setCategory}
-        onSelectProduct={(id) => setActiveId(id)}
       />
     ),
   };
@@ -225,15 +183,6 @@ export function Storefront({
 
       <Footer brand={settings.brand} location={settings.contact.location} />
 
-      {activeProduct && (
-        <ProductModal
-          product={activeProduct}
-          inCart={qtyInCart(activeProduct.id)}
-          customBox={settings.customBox}
-          onClose={() => setActiveId(null)}
-          onAddToCart={addToCart}
-        />
-      )}
 
       {cartOpen && (
         <CartDrawer

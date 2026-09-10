@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   focalStyle,
   remainingFor,
@@ -10,44 +12,90 @@ import {
 } from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "./visuals";
+import { useCart } from "./useCart";
 
-export function ProductModal({
+function newLineId() {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 10);
+}
+
+// One piece, on its own page.
+//
+// This replaced a modal over the shop. A modal cannot be linked to, so
+// pointing someone at one necklace meant "go to the shop and scroll"; now
+// every piece has an address Polly can put in a story, and search engines
+// have something to index. It also gives the photos room — the whole point
+// of a page rather than a box.
+export function ProductPage({
   product,
-  inCart,
   customBox,
-  onClose,
-  onAddToCart,
 }: {
   product: Product;
-  inCart: number; // already in the cart, so we don't let them exceed stock
   customBox: CustomOrderContent;
-  onClose: () => void;
-  onAddToCart: (product: Product, qty: number, note: string, color: string) => void;
 }) {
+  const router = useRouter();
+  const { cart } = useCart();
+  const { setCart } = useCart();
+
   const [qty, setQty] = useState(1);
   const [note, setNote] = useState("");
-  // Preselect the first colourway so a customer can never reach Add to
-  // cart having silently chosen nothing. Pieces with no options keep "".
   const [color, setColor] = useState(product.color_options[0] ?? "");
   const [gIdx, setGIdx] = useState(0);
+  const [added, setAdded] = useState(false);
 
   const imgs = product.images;
   const mainImg = imgs[gIdx] || imgs[0] || null;
 
   const st = stockState(product.stock);
   const soldOut = st.kind === "out";
-  const canAdd = remainingFor(product.stock, inCart); // Infinity if made to order
+
+  // How many of this piece are already in the cart, across every colour and
+  // note variant — the stock limit is per piece, not per variant.
+  const inCart = cart
+    .filter((l) => l.productId === product.id)
+    .reduce((s, l) => s + l.qty, 0);
+  const canAdd = remainingFor(product.stock, inCart);
   const atLimit = qty >= canAdd;
 
+  const addToCart = () => {
+    const cleanNote = note.trim();
+    const cleanColor = color.trim();
+    const add = Math.min(qty, canAdd);
+    if (add < 1) return;
+
+    setCart((prev) => {
+      const existing = prev.find(
+        (l) => l.productId === product.id && l.note === cleanNote && l.color === cleanColor
+      );
+      if (existing) {
+        return prev.map((l) => (l === existing ? { ...l, qty: l.qty + add } : l));
+      }
+      return [
+        ...prev,
+        { lineId: newLineId(), productId: product.id, qty: add, note: cleanNote, color: cleanColor },
+      ];
+    });
+
+    // Confirm in place rather than throwing her customer back to the grid.
+    // Pricing a cart needs the whole product list, which this page doesn't
+    // load, so the drawer opens on the shop page — but only if they ask.
+    setAdded(true);
+    setQty(1);
+  };
+
   return (
-    <div className="pp-scrim" onClick={onClose}>
-      <div className="pp-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="pp-close" onClick={onClose} aria-label="Close">
-          ×
-        </button>
-        <div className="pp-modal-grid">
-          <div className="pp-gallery">
-            <div className="pp-gmain">
+    <section className="pp-page pp-piecepage">
+      <div className="pp-piecewrap">
+        <Link href="/#shop" className="pp-backlink">
+          ← Back to the shop
+        </Link>
+
+        <div className="pp-piecegrid">
+          {/* Every photo on the page at once, which is what a page buys you
+              over a box. The big one is whichever she is looking at. */}
+          <div className="pp-piecegallery">
+            <div className="pp-piecemain">
               {mainImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -62,17 +110,24 @@ export function ProductModal({
                   colors={product.colors}
                   charm={product.charm}
                   charmText={product.charm_text}
-                  size={200}
+                  size={220}
                 />
               )}
+              {soldOut && (
+                <span className="pp-soldout">
+                  <span>Sold out</span>
+                </span>
+              )}
             </div>
+
             {imgs.length > 1 && (
-              <div className="pp-thumbs">
+              <div className="pp-piecethumbs">
                 {imgs.map((img, i) => (
                   <button
                     key={img.id}
-                    className={`pp-thumb ${gIdx === i ? "on" : ""}`}
+                    className={`pp-piecethumb ${gIdx === i ? "on" : ""}`}
                     onClick={() => setGIdx(i)}
+                    aria-label={`Photo ${i + 1} of ${imgs.length}`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img.url} alt="" style={focalStyle(img)} />
@@ -80,37 +135,33 @@ export function ProductModal({
                 ))}
               </div>
             )}
+
             {imgs.length === 0 && (
               <p className="pp-note" style={{ textAlign: "center", marginTop: 10 }}>
                 Illustrated preview. Real photos load once uploaded.
               </p>
             )}
           </div>
-          <div className="pp-detail">
+
+          <div className="pp-piecedetail">
             <span className="pp-spec">
               {product.category}
               {product.tag ? ` · ${product.tag}` : ""}
             </span>
-            <div className="pp-cardname">{product.name}</div>
-            <div className="pp-price" style={{ fontSize: 16 }}>
-              {money(product.price_cents)}
-            </div>
-            <p className="pp-desc">{product.description}</p>
+            <h1 className="pp-piecename">{product.name}</h1>
+            <div className="pp-pieceprice">{money(product.price_cents)}</div>
+
+            {product.description && <p className="pp-desc">{product.description}</p>}
+
             {product.material && (
-              <div>
+              <div className="pp-piecemade">
                 <span className="pp-spec">Made with</span>
-                <div className="pp-mat" style={{ marginTop: 4, fontSize: 13 }}>
+                <div className="pp-mat" style={{ marginTop: 4, fontSize: 13.5 }}>
                   {product.material}
                 </div>
               </div>
             )}
-            {/* Only when the owner ticked "make it yours" for this piece.
-                It used to render always, with the flag changing nothing but
-                the wording — so unticking the box in the admin appeared to
-                do nothing at all. */}
-            {/* Colourways, above the make-it-yours box: a customer picks
-                from what she actually makes before describing anything
-                she'd like changed. */}
+
             {product.color_options.length > 0 && (
               <div className="pp-colorpick">
                 <span className="pp-spec">Color</span>
@@ -133,10 +184,6 @@ export function ProductModal({
 
             {product.custom && (
               <div className="pp-custom">
-                {/* Both the heading and the greyed-out example are hers,
-                    from Site content. Falling back to the originals means
-                    an emptied field never leaves a customer staring at an
-                    unlabelled box. */}
                 <span className="pp-spec">{customBox.label.trim() || "Make it yours"}</span>
                 <input
                   className="pp-input"
@@ -146,25 +193,29 @@ export function ProductModal({
                 />
               </div>
             )}
+
             {st.kind === "low" && (
-              <p className="pp-lowstock" style={{ marginTop: 10 }}>
+              <p className="pp-lowstock" style={{ marginTop: 12 }}>
                 Only {st.left} left
               </p>
             )}
 
             {soldOut ? (
-              <div style={{ marginTop: 10 }}>
+              <div style={{ marginTop: 14 }}>
                 <button className="pp-btn" disabled style={{ opacity: 0.55, cursor: "not-allowed" }}>
                   Sold out
                 </button>
-                <p className="pp-note" style={{ marginTop: 8 }}>
-                  This one&apos;s gone. Message us on Instagram — Polly may be able to make
-                  another.
+                <p className="pp-note" style={{ marginTop: 10 }}>
+                  This one&apos;s gone.{" "}
+                  <Link href="/contact" style={{ color: "var(--sage-deep)" }}>
+                    Send a message
+                  </Link>{" "}
+                  — Polly may be able to make another.
                 </p>
               </div>
             ) : (
               <>
-                <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 6, flexWrap: "wrap" }}>
+                <div className="pp-piecebuy">
                   <div className="pp-qty">
                     <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease">
                       –
@@ -179,24 +230,35 @@ export function ProductModal({
                       +
                     </button>
                   </div>
-                  <button
-                    className="pp-btn"
-                    disabled={canAdd < 1}
-                    onClick={() => onAddToCart(product, Math.min(qty, canAdd), note, color)}
-                  >
+                  <button className="pp-btn" disabled={canAdd < 1} onClick={addToCart}>
                     Add to cart · {money(product.price_cents * qty)}
                   </button>
                 </div>
+
                 {canAdd < 1 && (
-                  <p className="pp-note" style={{ marginTop: 8 }}>
+                  <p className="pp-note" style={{ marginTop: 10 }}>
                     You already have all {inCart} of these in your cart.
                   </p>
+                )}
+
+                {added && (
+                  <div className="pp-added" role="status">
+                    <strong>Added to your cart.</strong>
+                    <div className="pp-addedbtns">
+                      <button className="pp-btn sage" onClick={() => router.push("/?cart=1")}>
+                        View cart
+                      </button>
+                      <Link href="/#shop" className="pp-addedlink">
+                        Keep shopping
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
