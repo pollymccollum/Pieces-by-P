@@ -25,6 +25,16 @@ export { isEmailConfigured };
 // Taken from the Contact email she already fills in, so it is hers to
 // change and is the same address the contact page shows. Empty or
 // obviously unset means no Reply-To at all rather than a broken one.
+// Where Polly's own alerts land.
+//
+// Her Contact email first: that is the shop's inbox, the one she gives
+// customers and the one she'll actually be watching. ADMIN_EMAIL is the
+// fallback, but its real job is gating the login — the address she signs in
+// with need not be the address she wants shop mail at, and here they differ.
+function ownerInbox(contactEmail: string | undefined): string {
+  return replyToFor(contactEmail) ?? process.env.ADMIN_EMAIL?.trim() ?? "";
+}
+
 function replyToFor(contactEmail: string | undefined): string | undefined {
   const address = (contactEmail ?? "").trim();
   if (!address || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) return undefined;
@@ -68,7 +78,9 @@ export async function sendNewOrderEmails(
   // finds out she has an order at all.
   const jobs = [];
   if (data.notifyOwner !== false) {
-    jobs.push(sendMail(ownerNewOrder(data, `${siteUrl()}/admin/orders`)));
+    jobs.push(
+      sendMail(ownerNewOrder(data, `${siteUrl()}/admin/orders`, ownerInbox(data.contactEmail)))
+    );
   }
 
   // customerEmail is required at checkout, but stays nullable in the type
@@ -146,9 +158,16 @@ export async function notifyOwnerOfMessage(args: {
   email: string;
   body: string;
   brand: string;
+  contactEmail?: string;
 }): Promise<void> {
   if (!isEmailConfigured()) return;
-  await sendMail(ownerNewMessage({ ...args, adminUrl: `${siteUrl()}/admin/messages` }));
+  await sendMail(
+    ownerNewMessage({
+      ...args,
+      adminUrl: `${siteUrl()}/admin/messages`,
+      ownerTo: ownerInbox(args.contactEmail),
+    })
+  );
 }
 
 // Auto-reply to whoever used the contact form. Sent after the message is

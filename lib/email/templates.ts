@@ -215,7 +215,10 @@ export function orderConfirmation(d: OrderEmailData): Mail {
 }
 
 // ── 2. New order alert (to Polly) ───────────────────────────
-export function ownerNewOrder(d: OrderEmailData, adminUrl: string): Mail {
+// `ownerTo` rather than reading ADMIN_EMAIL here: that variable's job is
+// deciding who may log in, and the address she wants shop alerts at is not
+// necessarily the one she signs in with.
+export function ownerNewOrder(d: OrderEmailData, adminUrl: string, ownerTo: string): Mail {
   const method = d.paymentMethod === "venmo" ? "Venmo — not paid yet" : "Card";
 
   const html = shell(
@@ -253,7 +256,7 @@ export function ownerNewOrder(d: OrderEmailData, adminUrl: string): Mail {
   ].join("\n");
 
   return {
-    to: process.env.ADMIN_EMAIL?.trim() ?? "",
+    to: ownerTo,
     subject: `New order · ${d.customerName} · ${money(d.totalCents)}`,
     html,
     text,
@@ -347,6 +350,7 @@ export function orderShipped(args: {
 
 // ── 5. New contact message (to Polly) ───────────────────────
 export function ownerNewMessage(args: {
+  ownerTo: string;
   brand: string;
   name: string;
   email: string;
@@ -377,7 +381,7 @@ export function ownerNewMessage(args: {
   ].join(NEWLINE);
 
   return {
-    to: process.env.ADMIN_EMAIL?.trim() ?? "",
+    to: args.ownerTo,
     subject: `Message from ${args.name}`,
     html,
     text,

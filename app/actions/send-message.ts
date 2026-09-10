@@ -61,7 +61,13 @@ export async function sendContactMessage(input: {
   try {
     const settings = await getSiteSettings();
     await Promise.allSettled([
-      notifyOwnerOfMessage({ name, email, body, brand: settings.brand }),
+      notifyOwnerOfMessage({
+        name,
+        email,
+        body,
+        brand: settings.brand,
+        contactEmail: settings.contact.email,
+      }),
       sendContactAutoReply({
         to: email,
         name,
