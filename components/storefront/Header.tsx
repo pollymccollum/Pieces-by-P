@@ -43,13 +43,36 @@ export function Header({
             nav, or the browser's back button, is how you get back. */}
         {onHome ? (
           <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
+            <BrandMark
+              brand={brand}
+              logoUrl={logoUrl}
+              logoHeight={logoHeight}
+              brandFont={brandFont}
+              showWord={false}
+            />
           </button>
         ) : (
           <span className="pp-brand">
-            <BrandMark brand={brand} logoUrl={logoUrl} logoHeight={logoHeight} brandFont={brandFont} />
+            <BrandMark
+              brand={brand}
+              logoUrl={logoUrl}
+              logoHeight={logoHeight}
+              brandFont={brandFont}
+              showWord={false}
+            />
           </span>
         )}
+
+        {/* Centred on the page rather than sitting beside the mark, so it stays
+            centred however wide the logo or the nav happen to be. Absolutely
+            positioned for that reason: laying it out in the flex row would
+            centre it in the gap between them, which is not the middle.
+
+            aria-hidden because the logo's alt text already names the shop, and
+            a screen reader shouldn't hear it twice. */}
+        <span className="pp-word pp-word-mid" style={brandFont} aria-hidden="true">
+          {brand}
+        </span>
 
         <nav className="pp-nav">
           {NAV_LINKS.map((l) =>

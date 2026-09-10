@@ -158,29 +158,47 @@ export function Badge({ s = 36 }: { s?: number }) {
 // otherwise the sage "P" badge beside the letterspaced wordmark.
 // A logo normally already contains the shop name, so it replaces both
 // rather than sitting next to a second copy of the name.
+// The shop's mark: her uploaded logo, or the sage "P" badge.
+//
+// A logo used to replace the wordmark as well, on the reasoning that a
+// logo usually contains the shop's name already. Hers does — and she still
+// wants the name set beside it, which is her call to make. `showWord` lets
+// the header put the wordmark somewhere the mark isn't.
+//
+// Rendered as a square and clipped to a circle. Her logo is a circular
+// design on a square canvas, so left at its natural proportions it showed
+// as a square with white corners.
 export function BrandMark({
   brand,
   logoUrl,
   logoHeight,
   brandFont,
+  showWord = true,
 }: {
   brand: string;
   logoUrl: string | null;
   logoHeight: number;
   brandFont?: React.CSSProperties;
+  showWord?: boolean;
 }) {
-  if (logoUrl) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={logoUrl} alt={brand} className="pp-logo" style={{ height: logoHeight }} />
-    );
-  }
   return (
     <>
-      <Badge />
-      <span className="pp-word" style={brandFont}>
-        {brand}
-      </span>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={brand}
+          className="pp-logo"
+          style={{ height: logoHeight, width: logoHeight }}
+        />
+      ) : (
+        <Badge />
+      )}
+      {showWord && (
+        <span className="pp-word" style={brandFont}>
+          {brand}
+        </span>
+      )}
     </>
   );
 }

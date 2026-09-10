@@ -143,6 +143,8 @@ button {
   align-items: center;
   justify-content: space-between;
   height: 66px;
+  /* Anchors the centred wordmark below. */
+  position: relative;
 }
 .pp-brand {
   display: flex;
@@ -196,11 +198,32 @@ button {
 
 /* Owner-uploaded logo. Height is set inline from settings; width follows
    the image's own proportions, capped so a wide logo can't crowd the nav. */
+/* Her logo is a circular design drawn on a square canvas, so `contain` at its
+   natural proportions rendered a square with white corners. A square box
+   clipped to a circle, with `cover` so the artwork fills it, gives back the
+   circle the design already is — and would do the same for a photo. */
 .pp-logo {
   display: block;
-  width: auto;
-  max-width: min(260px, 52vw);
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
+/* Centred on the page, not between the logo and the nav — those are different
+   points unless the two happen to be the same width. */
+.pp-word-mid {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+@media (max-width: 720px) {
+  /* Not enough room between the logo and the cart for it to be centred
+     without colliding with one of them. The logo carries the name anyway. */
+  .pp-word-mid {
+    display: none;
+  }
 }
 .pp-word {
   font-family: var(--serif);
@@ -1171,15 +1194,6 @@ button {
   font-size: 17px;
   line-height: 1.75;
   color: var(--ink);
-}
-/* Signed off in the script face, like a note rather than a page of copy. */
-.pp-aboutsign {
-  font-family: var(--script);
-  font-weight: 700;
-  font-size: 30px;
-  color: var(--sage-deep);
-  margin: 22px 0 0;
-  line-height: 1;
 }
 .pp-aboutcta {
   align-self: flex-start;

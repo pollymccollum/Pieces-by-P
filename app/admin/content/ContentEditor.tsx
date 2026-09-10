@@ -136,8 +136,10 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         <div className="ad-field" style={{ marginTop: 18 }}>
           <span className="ad-lbl">Logo</span>
           <span className="ad-help" style={{ marginBottom: 8 }}>
-            Replaces the &ldquo;P&rdquo; circle and shop name at the top of every page. A PNG with a
-            see-through background works best. No logo keeps the original design.
+            Replaces the &ldquo;P&rdquo; circle at the top of every page. Your shop
+            name still shows, centred beside it. Upload a square image &mdash; it&apos;s
+            trimmed to a circle, so anything in the corners won&apos;t show. No logo
+            keeps the original design.
           </span>
 
           {/* Preview on the real header background, so what she sees is what ships. */}
@@ -153,45 +155,54 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
               minHeight: 72,
             }}
           >
+            {/* The mark, then the name — the same pair the site shows, so this
+                preview can't promise something the header won't do. The logo
+                used to preview square and without the name, which is exactly
+                what it then looked like on the site. */}
             {s.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={s.logoUrl}
                 alt="Your logo"
-                style={{ height: s.logoHeight, width: "auto", maxWidth: 240, objectFit: "contain", display: "block" }}
+                style={{
+                  height: s.logoHeight,
+                  width: s.logoHeight,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  display: "block",
+                  flex: "none",
+                }}
               />
             ) : (
-              <>
-                <span
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: "50%",
-                    background: "var(--surface)",
-                    border: "1.5px solid var(--sage)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontFamily: "var(--script)",
-                    fontWeight: 700,
-                    color: "var(--sage-deep)",
-                    fontSize: 20,
-                  }}
-                >
-                  P
-                </span>
-                <span
-                  style={{
-                    fontFamily: "var(--serif)",
-                    fontSize: 22,
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {s.brand}
-                </span>
-              </>
+              <span
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  background: "var(--surface)",
+                  border: "1.5px solid var(--sage)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontFamily: "var(--script)",
+                  fontWeight: 700,
+                  color: "var(--sage-deep)",
+                  fontSize: 20,
+                }}
+              >
+                P
+              </span>
             )}
+            <span
+              style={{
+                fontFamily: "var(--serif)",
+                fontSize: 22,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+              }}
+            >
+              {s.brand}
+            </span>
           </div>
 
           <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 10, flexWrap: "wrap" }}>
@@ -239,7 +250,8 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
                 </span>
               </div>
               <span className="ad-help">
-                Drag to fit — the preview above updates as you go.
+                Sets how big the circle is. Drag to fit — the preview above
+                updates as you go.
               </span>
             </div>
           )}
