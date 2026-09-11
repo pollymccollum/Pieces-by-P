@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
   ACCENTS,
   GRID_SIZES,
@@ -20,6 +20,7 @@ import {
 import { saveSettings, uploadAboutPhoto, uploadHeroPhoto, uploadLogo } from "../actions";
 import { FontPicker } from "./FontPicker";
 import { downscaleImage } from "@/lib/image-downscale";
+import { PLACEHOLDERS, suggestFor, unknownPlaceholders } from "@/lib/email-placeholders";
 import type { FontKey, FontSlot } from "@/lib/fonts";
 
 // About and Contact are their own pages now, so there is nothing here to
@@ -639,10 +640,10 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           are filled in for you and can&apos;t be deleted by accident.
         </p>
         <p className="ad-help" style={{ marginBottom: 16 }}>
-          Write <code>{"{name}"}</code> for the customer&apos;s first name,
-          <code>{"{order}"}</code> for the order number, or{" "}
-          <code>{"{brand}"}</code> for your shop name — anywhere in a subject,
-          heading or message.
+          Use the <b>Insert</b> buttons to drop in a customer&apos;s name, the
+          order number or your shop name. If one ever gets mistyped, the line
+          quietly falls back to the original wording rather than sending
+          something broken — and it tells you.
         </p>
 
         {/* Only the two emails addressed to HER are optional. The three sent
@@ -700,47 +701,16 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
               <span className="ad-help">{when}</span>
             </div>
 
-            <div className="ad-field">
-              <span className="ad-lbl">Subject line</span>
-              <input
-                className="pp-input"
-                maxLength={120}
-                value={s.emails[key].subject}
-                onChange={(e) =>
-                  patch({
-                    emails: { ...s.emails, [key]: { ...s.emails[key], subject: e.target.value } },
-                  })
+            {(["subject", "heading", "message"] as const).map((part) => (
+              <CopyField
+                key={part}
+                part={part}
+                value={s.emails[key][part]}
+                onChange={(next) =>
+                  patch({ emails: { ...s.emails, [key]: { ...s.emails[key], [part]: next } } })
                 }
               />
-            </div>
-
-            <div className="ad-field" style={{ marginTop: 10 }}>
-              <span className="ad-lbl">Heading</span>
-              <input
-                className="pp-input"
-                maxLength={120}
-                value={s.emails[key].heading}
-                onChange={(e) =>
-                  patch({
-                    emails: { ...s.emails, [key]: { ...s.emails[key], heading: e.target.value } },
-                  })
-                }
-              />
-            </div>
-
-            <div className="ad-field" style={{ marginTop: 10 }}>
-              <span className="ad-lbl">Message</span>
-              <textarea
-                className="pp-textarea"
-                style={{ minHeight: 84 }}
-                value={s.emails[key].message}
-                onChange={(e) =>
-                  patch({
-                    emails: { ...s.emails, [key]: { ...s.emails[key], message: e.target.value } },
-                  })
-                }
-              />
-            </div>
+            ))}
 
             <EmailPreview
               brand={s.brand}
@@ -1016,6 +986,102 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
 // Shows Polly her words sitting inside the parts she doesn't control, so
 // "what does the customer actually get?" is answered on the page rather than
 // by placing a test order.
+const PART_LABELS = {
+  subject: "Subject line",
+  heading: "Heading",
+  message: "Message",
+} as const;
+
+// One editable part of an email, with the placeholders as buttons rather than
+// something to type.
+//
+// Typing `{name}` by hand is the only way to get it wrong, so the buttons are
+// the real fix — she clicks, it lands at the cursor. The warning below is for
+// when she edits around one and breaks it anyway, and it names the mistake
+// rather than just flagging that one exists.
+function CopyField({
+  part,
+  value,
+  onChange,
+}: {
+  part: "subject" | "heading" | "message";
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const ref = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const bad = unknownPlaceholders(value);
+
+  const insert = (token: string) => {
+    const el = ref.current;
+    const chip = `{${token}}`;
+    if (!el) {
+      onChange(value + chip);
+      return;
+    }
+    const start = el.selectionStart ?? value.length;
+    const endPos = el.selectionEnd ?? value.length;
+    onChange(value.slice(0, start) + chip + value.slice(endPos));
+    // Put the cursor after what was just inserted, so she can keep typing.
+    requestAnimationFrame(() => {
+      el.focus();
+      const at = start + chip.length;
+      el.setSelectionRange(at, at);
+    });
+  };
+
+  return (
+    <div className="ad-field" style={{ marginTop: part === "subject" ? 0 : 10 }}>
+      <span className="ad-lbl">{PART_LABELS[part]}</span>
+
+      {part === "message" ? (
+        <textarea
+          ref={ref as React.RefObject<HTMLTextAreaElement>}
+          className="pp-textarea"
+          style={{ minHeight: 84 }}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      ) : (
+        <input
+          ref={ref as React.RefObject<HTMLInputElement>}
+          className="pp-input"
+          maxLength={120}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+
+      <div className="ad-chiprow">
+        <span className="ad-chiplabel">Insert</span>
+        {PLACEHOLDERS.map((ph) => (
+          <button
+            key={ph.token}
+            type="button"
+            className="ad-chip"
+            title={ph.label}
+            onClick={() => insert(ph.token)}
+          >
+            {ph.label}
+          </button>
+        ))}
+      </div>
+
+      {bad.length > 0 && (
+        <p className="ad-chipwarn">
+          <b>{bad.map((t) => `{${t}}`).join(", ")}</b>{" "}
+          {bad.length === 1 ? "isn't something" : "aren't things"} I can fill in.
+          {(() => {
+            const guess = suggestFor(bad[0]);
+            return guess ? ` Did you mean {${guess}}?` : "";
+          })()}{" "}
+          Until it&apos;s fixed, this line falls back to the original wording so
+          customers never see it — use the Insert buttons above.
+        </p>
+      )}
+    </div>
+  );
+}
+
 // What the customer actually receives, assembled from her three fields and
 // the parts the template fills in. Sage is hers, grey is generated — so the
 // boundary between "what I can change" and "what is always there" is visible

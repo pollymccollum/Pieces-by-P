@@ -1,4 +1,5 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { unknownPlaceholders } from "@/lib/email-placeholders";
 import { getSupabaseAuthClient } from "@/lib/supabase/admin-client";
 import type {
   EmailCopy,
@@ -114,6 +115,30 @@ type LegacyEmails = Partial<SiteSettingsData["emails"]> & {
   contactReply?: unknown;
 };
 
+// A field carrying a placeholder that doesn't exist falls back to the stock
+// wording for that field.
+//
+// Her typo would otherwise reach the customer verbatim — "Thank you, {nmae}!"
+// — which reads as broken to them and is invisible to her. Falling back means
+// the worst case is a customer seeing perfectly good default wording, while
+// the admin shows her exactly what's wrong and why hers isn't being used.
+//
+// Per field, not per email: one bad heading shouldn't discard a message she
+// got right.
+function safeField(mine: string | undefined, fallback: string): string {
+  const text = mine ?? "";
+  if (!text.trim()) return text;
+  return unknownPlaceholders(text).length > 0 ? fallback : text;
+}
+
+function safeCopy(mine: Partial<EmailCopy> | undefined, base: EmailCopy): EmailCopy {
+  return {
+    subject: safeField(mine?.subject, base.subject),
+    heading: safeField(mine?.heading, base.heading),
+    message: safeField(mine?.message, base.message),
+  };
+}
+
 function mergeEmails(row: unknown): SiteSettingsData["emails"] {
   const base = FALLBACK_SETTINGS.emails;
   const incoming = (row ?? {}) as LegacyEmails;
@@ -125,11 +150,14 @@ function mergeEmails(row: unknown): SiteSettingsData["emails"] {
     const saved = incoming[key];
     const fromObject =
       saved && typeof saved === "object" ? (saved as Partial<EmailCopy>) : undefined;
-    return {
-      ...base[key],
-      ...(legacyMessage ? { message: legacyMessage } : {}),
-      ...fromObject,
-    };
+    return safeCopy(
+      {
+        ...base[key],
+        ...(legacyMessage ? { message: legacyMessage } : {}),
+        ...fromObject,
+      },
+      base[key]
+    );
   };
 
   return {
@@ -143,7 +171,7 @@ function mergeEmails(row: unknown): SiteSettingsData["emails"] {
       "contactReply",
       typeof incoming.contactReply === "string" ? incoming.contactReply : undefined
     ),
-    signoff: incoming.signoff ?? base.signoff,
+    signoff: safeField(incoming.signoff, base.signoff),
   };
 }
 
