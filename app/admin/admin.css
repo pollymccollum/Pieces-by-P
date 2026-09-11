@@ -1191,8 +1191,24 @@
   display: block;
   margin-top: 2px;
 }
+/* The subject sits above the sheet, the way an inbox shows it before you
+   open anything — she can now edit it, so she should be able to see it. */
+.ad-mailprev-subject {
+  font-size: 13px;
+  color: var(--ink);
+  padding-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+.ad-mailprev-subject span {
+  display: inline-block;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-right: 8px;
+}
 .ad-mailprev {
-  margin-top: 18px;
+  margin-top: 14px;
   background: var(--cream);
   border: 1px solid var(--hair);
   border-radius: 12px;

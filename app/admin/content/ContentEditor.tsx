@@ -33,31 +33,46 @@ const SECTION_LABELS: Record<SectionId, string> = {
 const LOCKED: SectionId[] = ["shop"];
 
 // The five emails a customer can receive, in the order they'd meet them.
+//
+// `intro` and `after` describe the parts SHE doesn't write — the sentence the
+// email opens with and whatever the template fills in below her message. They
+// differ per email, which is exactly why each one needs its own preview
+// rather than one generic sample at the bottom of the card.
 const EMAIL_FIELDS = [
   {
     key: "confirmation" as const,
     label: "Order confirmation",
     when: "Sent the moment someone places an order.",
+    intro: "Your order PBP-K7QM2 is in.",
+    after: "The pieces, the total and the shipping address — and for a Venmo order, the amount to send and the reference.",
   },
   {
     key: "paymentReceived" as const,
     label: "Payment received",
     when: "Sent when you tap Mark paid on a Venmo order.",
+    intro: "We've got your $75.00 for order PBP-K7QM2.",
+    after: null,
   },
   {
     key: "shipped" as const,
     label: "Shipped",
     when: "Sent when you tap Shipped on an order.",
+    intro: "Order PBP-K7QM2 has shipped.",
+    after: "The address it's going to.",
   },
   {
     key: "venmoReminder" as const,
     label: "Venmo reminder",
     when: "Sent only when you tap Send reminder on an unpaid order.",
+    intro: null,
+    after: "The amount to send, your Venmo handle, and the order number to put in the note.",
   },
   {
     key: "contactReply" as const,
     label: "Reply to a message",
     when: "Sent automatically to anyone who uses your contact form.",
+    intro: null,
+    after: "A copy of the message they sent you.",
   },
 ];
 
@@ -678,7 +693,7 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
             — order number, pieces, totals, address, the Venmo box — is still
             generated, so she can rewrite the voice without being able to
             leave a customer without the details. */}
-        {EMAIL_FIELDS.map(({ key, label, when }) => (
+        {EMAIL_FIELDS.map(({ key, label, when, intro, after }) => (
           <div className="ad-emailblock" key={key}>
             <div className="ad-emailhead">
               <b>{label}</b>
@@ -726,6 +741,14 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
                 }
               />
             </div>
+
+            <EmailPreview
+              brand={s.brand}
+              copy={s.emails[key]}
+              signoff={s.emails.signoff}
+              intro={intro}
+              after={after}
+            />
           </div>
         ))}
 
@@ -741,13 +764,6 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
             The last thing every customer reads. Leave it empty to skip it.
           </span>
         </div>
-
-        <EmailPreview
-          brand={s.brand}
-          heading={s.emails.confirmation.heading}
-          message={s.emails.confirmation.message}
-          signoff={s.emails.signoff}
-        />
       </div>
 
       {/* ---- shipping + categories ---- */}
@@ -1000,49 +1016,60 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
 // Shows Polly her words sitting inside the parts she doesn't control, so
 // "what does the customer actually get?" is answered on the page rather than
 // by placing a test order.
+// What the customer actually receives, assembled from her three fields and
+// the parts the template fills in. Sage is hers, grey is generated — so the
+// boundary between "what I can change" and "what is always there" is visible
+// rather than something she has to infer.
 function EmailPreview({
   brand,
-  heading,
-  message,
+  copy,
   signoff,
+  intro,
+  after,
 }: {
   brand: string;
-  heading: string;
-  message: string;
+  copy: { subject: string; heading: string; message: string };
   signoff: string;
+  intro: string | null;
+  after: string | null;
 }) {
+  // The same substitution the email itself does, so the preview can't promise
+  // something the send won't produce.
+  const fill = (t: string) =>
+    (t ?? "")
+      .replace(/\{name\}/gi, "Sarah")
+      .replace(/\{order\}/gi, "PBP-K7QM2")
+      .replace(/\{brand\}/gi, brand || "Pieces by P");
+
   const blocks = (text: string) =>
-    text
+    fill(text)
       .trim()
       .split(/\n\s*\n/)
       .filter(Boolean);
 
   return (
     <div className="ad-mailprev">
+      <div className="ad-mailprev-subject">
+        <span>Subject</span>
+        {fill(copy.subject) || "(no subject)"}
+      </div>
       <div className="ad-mailprev-brand">{brand || "Pieces by P"}</div>
       <div className="ad-mailprev-sheet">
-        <div className="ad-mailprev-h">{heading.replace(/\{name\}/gi, "Sarah").replace(/\{order\}/gi, "PBP-K7QM2").replace(/\{brand\}/gi, brand) || "\u00a0"}</div>
-        <p className="ad-mailprev-fixed">
-          Your order <b>PBP-K7QM2</b> is in.
-        </p>
-        {blocks(message).map((b, i) => (
+        <div className="ad-mailprev-h">{fill(copy.heading) || "\u00a0"}</div>
+        {intro && <p className="ad-mailprev-fixed">{intro}</p>}
+        {blocks(copy.message).map((b, i) => (
           <p className="ad-mailprev-yours" key={i}>
             {b}
           </p>
         ))}
-        <div className="ad-mailprev-rest">
-          Your pieces, the total, and the shipping address go here
-          {"\u2014"} filled in automatically.
-        </div>
+        {after && <div className="ad-mailprev-rest">{after}</div>}
         {blocks(signoff).map((b, i) => (
           <p className="ad-mailprev-yours" key={i} style={{ marginTop: 10 }}>
             {b}
           </p>
         ))}
       </div>
-      <div className="ad-mailprev-note">
-        Preview. Sage text is yours; grey is filled in for you.
-      </div>
+      <div className="ad-mailprev-note">Sage is yours · grey is filled in for you</div>
     </div>
   );
 }
