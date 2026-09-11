@@ -32,6 +32,35 @@ const SECTION_LABELS: Record<SectionId, string> = {
 // The shop grid is the store itself — reorderable, but not hideable.
 const LOCKED: SectionId[] = ["shop"];
 
+// The five emails a customer can receive, in the order they'd meet them.
+const EMAIL_FIELDS = [
+  {
+    key: "confirmation" as const,
+    label: "Order confirmation",
+    when: "Sent the moment someone places an order.",
+  },
+  {
+    key: "paymentReceived" as const,
+    label: "Payment received",
+    when: "Sent when you tap Mark paid on a Venmo order.",
+  },
+  {
+    key: "shipped" as const,
+    label: "Shipped",
+    when: "Sent when you tap Shipped on an order.",
+  },
+  {
+    key: "venmoReminder" as const,
+    label: "Venmo reminder",
+    when: "Sent only when you tap Send reminder on an unpaid order.",
+  },
+  {
+    key: "contactReply" as const,
+    label: "Reply to a message",
+    when: "Sent automatically to anyone who uses your contact form.",
+  },
+];
+
 export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
   const [s, setS] = useState<SiteSettingsData>(initial);
   const [newCategory, setNewCategory] = useState("");
@@ -590,9 +619,15 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
       <div className="ad-card">
         <p className="ad-sec">Emails</p>
         <p className="ad-help" style={{ marginBottom: 14 }}>
-          What your automatic emails say. Everything else — order number, the
-          pieces, the total, the address, the Venmo instructions — is filled in
-          for you and can&apos;t be deleted by accident.
+          Every word of every email you send. The facts around them — order
+          number, the pieces, the total, the address, the Venmo instructions —
+          are filled in for you and can&apos;t be deleted by accident.
+        </p>
+        <p className="ad-help" style={{ marginBottom: 16 }}>
+          Write <code>{"{name}"}</code> for the customer&apos;s first name,
+          <code>{"{order}"}</code> for the order number, or{" "}
+          <code>{"{brand}"}</code> for your shop name — anywhere in a subject,
+          heading or message.
         </p>
 
         {/* Only the two emails addressed to HER are optional. The three sent
@@ -639,48 +674,78 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           </label>
         </div>
 
-        <div className="ad-field">
-          <span className="ad-lbl">Order confirmation — your message</span>
-          <textarea
-            className="pp-textarea"
-            style={{ minHeight: 90 }}
-            value={s.emails.confirmationNote}
-            onChange={(e) => patch({ emails: { ...s.emails, confirmationNote: e.target.value } })}
-          />
-          <span className="ad-help">
-            Sits right under &ldquo;Thank you, [their first name]!&rdquo;. Leave a
-            blank line between paragraphs.
-          </span>
-        </div>
+        {/* One block per email she sends. Everything factual around her words
+            — order number, pieces, totals, address, the Venmo box — is still
+            generated, so she can rewrite the voice without being able to
+            leave a customer without the details. */}
+        {EMAIL_FIELDS.map(({ key, label, when }) => (
+          <div className="ad-emailblock" key={key}>
+            <div className="ad-emailhead">
+              <b>{label}</b>
+              <span className="ad-help">{when}</span>
+            </div>
 
-        <div className="ad-field" style={{ marginTop: 14 }}>
-          <span className="ad-lbl">Order confirmation — sign-off</span>
+            <div className="ad-field">
+              <span className="ad-lbl">Subject line</span>
+              <input
+                className="pp-input"
+                maxLength={120}
+                value={s.emails[key].subject}
+                onChange={(e) =>
+                  patch({
+                    emails: { ...s.emails, [key]: { ...s.emails[key], subject: e.target.value } },
+                  })
+                }
+              />
+            </div>
+
+            <div className="ad-field" style={{ marginTop: 10 }}>
+              <span className="ad-lbl">Heading</span>
+              <input
+                className="pp-input"
+                maxLength={120}
+                value={s.emails[key].heading}
+                onChange={(e) =>
+                  patch({
+                    emails: { ...s.emails, [key]: { ...s.emails[key], heading: e.target.value } },
+                  })
+                }
+              />
+            </div>
+
+            <div className="ad-field" style={{ marginTop: 10 }}>
+              <span className="ad-lbl">Message</span>
+              <textarea
+                className="pp-textarea"
+                style={{ minHeight: 84 }}
+                value={s.emails[key].message}
+                onChange={(e) =>
+                  patch({
+                    emails: { ...s.emails, [key]: { ...s.emails[key], message: e.target.value } },
+                  })
+                }
+              />
+            </div>
+          </div>
+        ))}
+
+        <div className="ad-field" style={{ marginTop: 4 }}>
+          <span className="ad-lbl">Sign-off — used on all five</span>
           <textarea
             className="pp-textarea"
-            style={{ minHeight: 70 }}
+            style={{ minHeight: 64 }}
             value={s.emails.signoff}
             onChange={(e) => patch({ emails: { ...s.emails, signoff: e.target.value } })}
           />
-          <span className="ad-help">The last thing they read. Leave it empty to skip it.</span>
-        </div>
-
-        <div className="ad-field" style={{ marginTop: 14 }}>
-          <span className="ad-lbl">Custom order reply</span>
-          <textarea
-            className="pp-textarea"
-            style={{ minHeight: 90 }}
-            value={s.emails.contactReply}
-            onChange={(e) => patch({ emails: { ...s.emails, contactReply: e.target.value } })}
-          />
           <span className="ad-help">
-            Goes back automatically to anyone who sends you a message, along with
-            a copy of what they wrote.
+            The last thing every customer reads. Leave it empty to skip it.
           </span>
         </div>
 
         <EmailPreview
           brand={s.brand}
-          note={s.emails.confirmationNote}
+          heading={s.emails.confirmation.heading}
+          message={s.emails.confirmation.message}
           signoff={s.emails.signoff}
         />
       </div>
@@ -937,11 +1002,13 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
 // by placing a test order.
 function EmailPreview({
   brand,
-  note,
+  heading,
+  message,
   signoff,
 }: {
   brand: string;
-  note: string;
+  heading: string;
+  message: string;
   signoff: string;
 }) {
   const blocks = (text: string) =>
@@ -954,11 +1021,11 @@ function EmailPreview({
     <div className="ad-mailprev">
       <div className="ad-mailprev-brand">{brand || "Pieces by P"}</div>
       <div className="ad-mailprev-sheet">
-        <div className="ad-mailprev-h">Thank you, Sarah!</div>
+        <div className="ad-mailprev-h">{heading.replace(/\{name\}/gi, "Sarah").replace(/\{order\}/gi, "PBP-K7QM2").replace(/\{brand\}/gi, brand) || "\u00a0"}</div>
         <p className="ad-mailprev-fixed">
           Your order <b>PBP-K7QM2</b> is in.
         </p>
-        {blocks(note).map((b, i) => (
+        {blocks(message).map((b, i) => (
           <p className="ad-mailprev-yours" key={i}>
             {b}
           </p>

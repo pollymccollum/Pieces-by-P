@@ -67,7 +67,7 @@ export async function setOrderStatus(
   // Tapping "Shipped" is what tells the customer. No extra step for Polly.
   if (status === "shipped") {
     const [order, settings] = await Promise.all([findOrder(orderId), getSiteSettings()]);
-    if (order) await sendShippedEmail(order, settings.brand, settings.contact.email);
+    if (order) await sendShippedEmail(order, settings.brand, settings.emails, settings.contact.email);
   }
 
   revalidatePath("/admin/orders");
@@ -131,7 +131,7 @@ export async function setPaymentStatus(
   // wondering whether it went through.
   if (status === "paid") {
     const [order, settings] = await Promise.all([findOrder(orderId), getSiteSettings()]);
-    if (order) await sendPaymentReceivedEmail(order, settings.brand, settings.contact.email);
+    if (order) await sendPaymentReceivedEmail(order, settings.brand, settings.emails, settings.contact.email);
   }
 
   revalidatePath("/admin/orders");
@@ -171,6 +171,7 @@ export async function sendVenmoReminder(orderId: string): Promise<ActionResult> 
     settings.brand,
     settings.venmoHandle,
     settings.contact.location,
+    settings.emails,
     settings.contact.email
   );
   if (!res.sent) {
@@ -714,7 +715,7 @@ export async function createManualOrder(
       venmoHandle: settings.venmoHandle,
       brand: settings.brand,
       // Her wording, edited at /admin/content.
-      note: settings.emails.confirmationNote,
+      copy: settings.emails.confirmation,
       signoff: settings.emails.signoff,
       // Replies reach her, not the send-only from-address.
       contactEmail: settings.contact.email,

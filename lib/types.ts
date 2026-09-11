@@ -141,6 +141,22 @@ export type ContactContent = {
 // Wording Polly can rewrite in the site editor. The facts around it —
 // order number, items, totals, address, the Venmo instructions — stay
 // generated, so editing the friendly part can't break the useful part.
+// One customer email, in the three parts she can actually write: what the
+// inbox shows, the line at the top, and what it says.
+//
+// Everything factual stays generated — order number, the pieces, totals, the
+// address, the Venmo instructions. She can change the voice without being
+// able to leave a customer without the details.
+//
+// `{name}` anywhere in any of the three becomes the customer's first name,
+// and `{order}` the order number. Two placeholders, because two are
+// learnable and a dozen would be a syntax she has to get right.
+export type EmailCopy = {
+  subject: string;
+  heading: string;
+  message: string;
+};
+
 export type EmailContent = {
   // Which of the two emails addressed to HER actually get sent. The three
   // sent to customers are not optional: someone who gets no confirmation
@@ -158,12 +174,15 @@ export type EmailContent = {
   // the order one: an order is already recorded and waiting, where an
   // unanswered enquiry is a customer who thinks she ignored them.
   notifyOnMessage: boolean;
-  // Sits under "Thank you, <first name>!" in the order confirmation.
-  confirmationNote: string;
-  // Closing line on the confirmation, above the footer.
+  // The five emails her customers receive, each in the three parts she can
+  // actually write.
+  confirmation: EmailCopy;
+  paymentReceived: EmailCopy;
+  shipped: EmailCopy;
+  venmoReminder: EmailCopy;
+  contactReply: EmailCopy;
+  // Shared closing line across all five, so her sign-off is written once.
   signoff: string;
-  // The auto-reply to someone who used the custom-orders form.
-  contactReply: string;
 };
 
 // Client-side cart state. `product` is resolved live from the loaded

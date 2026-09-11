@@ -1,6 +1,7 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupabaseAuthClient } from "@/lib/supabase/admin-client";
 import type {
+  EmailCopy,
   FulfillmentStatus,
   Message,
   Order,
@@ -63,10 +64,35 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   emails: {
     notifyOnOrder: true,
     notifyOnMessage: true,
-    confirmationNote: "Each piece is handmade to order and ships in about a week.",
+    confirmation: {
+      subject: "Your {brand} order {order}",
+      heading: "Thank you, {name}!",
+      message: "Each piece is handmade to order and ships in about a week.",
+    },
+    paymentReceived: {
+      subject: "Payment received for {order}",
+      heading: "Payment received, {name}",
+      message:
+        "Thank you \u2014 your Venmo came through and your order is now in the making queue.",
+    },
+    shipped: {
+      subject: "{order} has shipped",
+      heading: "Your pieces are on the way, {name}",
+      message: "Your order is in the post and on its way to you now.",
+    },
+    venmoReminder: {
+      subject: "A reminder about your {brand} order",
+      heading: "Just a nudge, {name}",
+      message:
+        "Your pieces are still reserved for you. Once the Venmo comes through, we'll start making them.",
+    },
+    contactReply: {
+      subject: "We got your message \u2014 {brand}",
+      heading: "Thanks, {name} \u2014 we've got your message",
+      message:
+        "Polly reads every message herself and will come back to you as soon as she can. Custom pieces usually start with a few questions about colors and sizing, so expect a reply rather than a quote straight away.",
+    },
     signoff: "Thank you for supporting a small handmade shop.",
-    contactReply:
-      "Polly reads every message herself and will come back to you as soon as she can. Custom pieces usually start with a few questions about colors and sizing, so expect a reply rather than a quote straight away.",
   },
   contact: {
     heading: "Custom orders, pop-ups, and hellos",
@@ -77,6 +103,49 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     findus: "local pop-ups and markets",
   },
 };
+
+
+// Settings rows written before each email had its own subject and heading
+// keep a single `confirmationNote` and a plain-string `contactReply`. Anything
+// she typed into those is her writing, so it moves into the new shape rather
+// than being silently replaced by the default.
+type LegacyEmails = Partial<SiteSettingsData["emails"]> & {
+  confirmationNote?: string;
+  contactReply?: unknown;
+};
+
+function mergeEmails(row: unknown): SiteSettingsData["emails"] {
+  const base = FALLBACK_SETTINGS.emails;
+  const incoming = (row ?? {}) as LegacyEmails;
+
+  const copy = (
+    key: "confirmation" | "paymentReceived" | "shipped" | "venmoReminder" | "contactReply",
+    legacyMessage?: string
+  ): EmailCopy => {
+    const saved = incoming[key];
+    const fromObject =
+      saved && typeof saved === "object" ? (saved as Partial<EmailCopy>) : undefined;
+    return {
+      ...base[key],
+      ...(legacyMessage ? { message: legacyMessage } : {}),
+      ...fromObject,
+    };
+  };
+
+  return {
+    notifyOnOrder: incoming.notifyOnOrder ?? base.notifyOnOrder,
+    notifyOnMessage: incoming.notifyOnMessage ?? base.notifyOnMessage,
+    confirmation: copy("confirmation", incoming.confirmationNote),
+    paymentReceived: copy("paymentReceived"),
+    shipped: copy("shipped"),
+    venmoReminder: copy("venmoReminder"),
+    contactReply: copy(
+      "contactReply",
+      typeof incoming.contactReply === "string" ? incoming.contactReply : undefined
+    ),
+    signoff: incoming.signoff ?? base.signoff,
+  };
+}
 
 export async function getSiteSettings(): Promise<SiteSettingsData> {
   const supabase = getSupabaseServerClient();
@@ -102,7 +171,10 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     // Merged like the rest: a settings row written before this existed
     // still gets the default wording rather than blank emails.
     customBox: { ...FALLBACK_SETTINGS.customBox, ...row.customBox },
-    emails: { ...FALLBACK_SETTINGS.emails, ...row.emails },
+    // Merged one level deeper than the rest, because each email is its own
+    // object now. The two string fields that came before are carried across
+    // rather than dropped — she may already have written them.
+    emails: mergeEmails(row.emails),
   };
 }
 

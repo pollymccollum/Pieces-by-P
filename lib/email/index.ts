@@ -1,5 +1,5 @@
 import "server-only";
-import type { Order } from "@/lib/types";
+import type { EmailContent, EmailCopy, Order } from "@/lib/types";
 import { sendMail, isEmailConfigured } from "./client";
 import { orderEmailBudgetSpent } from "@/lib/rate-limit";
 import {
@@ -109,6 +109,7 @@ export async function sendNewOrderEmails(
 export async function sendShippedEmail(
   order: Order,
   brand: string,
+  emails: EmailContent,
   contactEmail?: string
 ): Promise<void> {
   if (!isEmailConfigured() || !order.customer_email) return;
@@ -116,6 +117,8 @@ export async function sendShippedEmail(
   await sendMail({
     replyTo: replyToFor(contactEmail),
     ...orderShipped({
+      copy: emails.shipped,
+      signoff: emails.signoff,
       brand,
       orderNumber: order.order_number,
       customerName: order.customer_name,
@@ -135,6 +138,7 @@ export async function sendShippedEmail(
 export async function sendPaymentReceivedEmail(
   order: Order,
   brand: string,
+  emails: EmailContent,
   contactEmail?: string
 ): Promise<void> {
   if (!isEmailConfigured() || !order.customer_email) return;
@@ -142,6 +146,8 @@ export async function sendPaymentReceivedEmail(
   await sendMail({
     replyTo: replyToFor(contactEmail),
     ...paymentReceived({
+      copy: emails.paymentReceived,
+      signoff: emails.signoff,
       brand,
       orderNumber: order.order_number,
       customerName: order.customer_name,
@@ -178,7 +184,7 @@ export async function sendContactAutoReply(args: {
   body: string;
   brand: string;
   location: string;
-  reply: string;
+  copy: EmailCopy;
   contactEmail?: string;
 }): Promise<void> {
   if (!isEmailConfigured() || !args.to) return;
@@ -187,7 +193,7 @@ export async function sendContactAutoReply(args: {
     name: args.name,
     body: args.body,
     location: args.location,
-    reply: args.reply,
+    copy: args.copy,
   });
   await sendMail({ ...mail, to: args.to, replyTo: replyToFor(args.contactEmail) });
 }
@@ -199,12 +205,15 @@ export async function sendVenmoReminderEmail(
   brand: string,
   venmoHandle: string,
   location: string,
+  emails: EmailContent,
   contactEmail?: string
 ): Promise<{ sent: boolean; reason?: string }> {
   if (!isEmailConfigured()) return { sent: false, reason: "email not configured" };
   if (!order.customer_email) return { sent: false, reason: "no email address" };
 
   const mail = venmoReminder({
+    copy: emails.venmoReminder,
+    signoff: emails.signoff,
     brand,
     orderNumber: order.order_number,
     customerName: order.customer_name,

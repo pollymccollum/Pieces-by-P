@@ -1168,6 +1168,29 @@
   padding-top: 10px;
 }
 
+/* One email per block, so five sets of three fields read as five emails
+   rather than fifteen boxes in a row. */
+.ad-emailblock {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  background: var(--cream);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+}
+.ad-emailhead {
+  margin-bottom: 10px;
+}
+.ad-emailhead b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--ink);
+}
+.ad-emailhead .ad-help {
+  display: block;
+  margin-top: 2px;
+}
 .ad-mailprev {
   margin-top: 18px;
   background: var(--cream);

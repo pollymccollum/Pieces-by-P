@@ -1,4 +1,5 @@
 import { money } from "@/lib/format";
+import type { EmailCopy } from "@/lib/types";
 import type { Mail } from "./client";
 
 // Email clients strip <style> blocks and ignore most modern CSS, so
@@ -31,8 +32,8 @@ export type OrderEmailData = {
   paymentMethod: "card" | "venmo";
   venmoHandle: string;
   brand: string;
-  // Polly's own wording, from the site editor. See EmailContent.
-  note: string;
+  // Her own wording for this email, from the site editor.
+  copy: EmailCopy;
   signoff: string;
   // Where a reply should go. The from-address has no mailbox behind it.
   contactEmail?: string;
@@ -75,6 +76,34 @@ function esc(s: string): string {
 // Owner-written wording arrives as plain text from a textarea. Blank lines
 // become paragraphs and single newlines become breaks, so what she typed is
 // what she gets — escaped first, because it lands inside HTML.
+// Fills the two placeholders she can use anywhere in a subject, heading or
+// message. Deliberately only two: one name, one order number. A larger
+// vocabulary would be a syntax she has to remember and can get wrong, and a
+// mistyped token would ship to a customer looking like a bug.
+//
+// An unknown token is left exactly as typed rather than blanked, so a typo
+// reads as a typo she can find and fix, not as a mysteriously missing word.
+export function fillCopy(
+  text: string,
+  vars: { name?: string; order?: string; brand?: string }
+): string {
+  return String(text ?? "")
+    .replace(/\{name\}/gi, vars.name ?? "")
+    .replace(/\{order\}/gi, vars.order ?? "")
+    .replace(/\{brand\}/gi, vars.brand ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// The same, but for a message body, where paragraph breaks are meaningful
+// and must survive.
+function fillBody(text: string, vars: { name?: string; order?: string; brand?: string }): string {
+  return String(text ?? "")
+    .replace(/\{name\}/gi, vars.name ?? "")
+    .replace(/\{order\}/gi, vars.order ?? "")
+    .replace(/\{brand\}/gi, vars.brand ?? "");
+}
+
 function paragraphs(text: string, color: string): string {
   const blocks = String(text ?? '')
     .trim()
@@ -167,14 +196,16 @@ export function orderConfirmation(d: OrderEmailData): Mail {
       </div>`
       : "";
 
+  const vars = { name: firstName, order: d.orderNumber, brand: d.brand };
+
   const html = shell(
     d.brand,
-    `Thank you, ${firstName}!`,
+    fillCopy(d.copy.heading, vars),
     `
     <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
       Your order <strong style="color:${INK};">${esc(d.orderNumber)}</strong> is in.
     </p>
-    ${paragraphs(d.note, INK_SOFT)}
+    ${paragraphs(fillBody(d.copy.message, vars), INK_SOFT)}
     ${venmoBlock}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:16px 0 0;">Your pieces</div>
     ${itemsHtml(d)}
@@ -185,10 +216,10 @@ export function orderConfirmation(d: OrderEmailData): Mail {
   );
 
   const text = [
-    `Thank you, ${firstName}!`,
+    fillCopy(d.copy.heading, vars),
     ``,
     `Your order ${d.orderNumber} is in.`,
-    ...(plain(d.note) ? [``, plain(d.note)] : []),
+    ...(plain(fillBody(d.copy.message, vars)) ? [``, plain(fillBody(d.copy.message, vars))] : []),
     ...(d.paymentMethod === "venmo"
       ? [
           ``,
@@ -208,7 +239,7 @@ export function orderConfirmation(d: OrderEmailData): Mail {
 
   return {
     to: d.customerEmail ?? "",
-    subject: `Your ${d.brand} order ${d.orderNumber}`,
+    subject: fillCopy(d.copy.subject, vars),
     html,
     text,
   };
@@ -267,6 +298,8 @@ export function ownerNewOrder(d: OrderEmailData, adminUrl: string, ownerTo: stri
 
 // ── 3. Payment received (to the customer) ───────────────────
 export function paymentReceived(args: {
+  copy: EmailCopy;
+  signoff: string;
   brand: string;
   orderNumber: string;
   customerName: string;
@@ -274,31 +307,32 @@ export function paymentReceived(args: {
   totalCents: number;
 }): Mail {
   const firstName = args.customerName.split(" ")[0] || "there";
+  const vars = { name: firstName, order: args.orderNumber, brand: args.brand };
 
   const html = shell(
     args.brand,
-    `Payment received, ${firstName}`,
+    fillCopy(args.copy.heading, vars),
     `
-    <p style="margin:0;font-size:14px;line-height:1.65;color:${INK_SOFT};">
+    <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
       We've got your <strong style="color:${INK};">${money(args.totalCents)}</strong> for order
-      <strong style="color:${INK};">${esc(args.orderNumber)}</strong>. Thank you!
+      <strong style="color:${INK};">${esc(args.orderNumber)}</strong>.
     </p>
-    <p style="margin:12px 0 0;font-size:14px;line-height:1.65;color:${INK_SOFT};">
-      Polly is making your pieces now. We'll email again the moment they're on their way.
-    </p>
+    ${paragraphs(fillBody(args.copy.message, vars), INK_SOFT)}
+    ${args.signoff.trim() ? `<div style="border-top:1px solid ${HAIR};margin-top:20px;padding-top:16px;">${paragraphs(args.signoff, INK)}</div>` : ""}
   `
   );
 
   const text = [
-    `Payment received, ${firstName}`,
+    fillCopy(args.copy.heading, vars),
     ``,
-    `We've got your ${money(args.totalCents)} for order ${args.orderNumber}. Thank you!`,
-    `Polly is making your pieces now, and we'll email again when they ship.`,
+    `We've got your ${money(args.totalCents)} for order ${args.orderNumber}.`,
+    ...(plain(fillBody(args.copy.message, vars)) ? [``, plain(fillBody(args.copy.message, vars))] : []),
+    ...(plain(args.signoff) ? [``, plain(args.signoff)] : []),
   ].join("\n");
 
   return {
     to: args.customerEmail,
-    subject: `Payment received for ${args.orderNumber}`,
+    subject: fillCopy(args.copy.subject, vars),
     html,
     text,
   };
@@ -306,6 +340,8 @@ export function paymentReceived(args: {
 
 // ── 4. Shipped (to the customer) ────────────────────────────
 export function orderShipped(args: {
+  copy: EmailCopy;
+  signoff: string;
   brand: string;
   orderNumber: string;
   customerName: string;
@@ -313,36 +349,36 @@ export function orderShipped(args: {
   address: string[];
 }): Mail {
   const firstName = args.customerName.split(" ")[0] || "there";
+  const vars = { name: firstName, order: args.orderNumber, brand: args.brand };
 
   const html = shell(
     args.brand,
-    `Your pieces are on the way, ${firstName}`,
+    fillCopy(args.copy.heading, vars),
     `
-    <p style="margin:0;font-size:14px;line-height:1.65;color:${INK_SOFT};">
+    <p style="margin:0 0 12px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
       Order <strong style="color:${INK};">${esc(args.orderNumber)}</strong> has shipped.
     </p>
+    ${paragraphs(fillBody(args.copy.message, vars), INK_SOFT)}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:18px 0 6px;">On its way to</div>
     <p style="margin:0;font-size:14px;line-height:1.65;color:${INK};">${args.address.map(esc).join("<br />")}</p>
-    <p style="margin:18px 0 0;font-size:13px;line-height:1.65;color:${INK_SOFT};">
-      Thank you for supporting handmade. If anything isn't right when it arrives, just reply to this email.
-    </p>
+    ${args.signoff.trim() ? `<div style="border-top:1px solid ${HAIR};margin-top:20px;padding-top:16px;">${paragraphs(args.signoff, INK)}</div>` : ""}
   `
   );
 
   const text = [
-    `Your pieces are on the way, ${firstName}`,
+    fillCopy(args.copy.heading, vars),
     ``,
     `Order ${args.orderNumber} has shipped.`,
+    ...(plain(fillBody(args.copy.message, vars)) ? [``, plain(fillBody(args.copy.message, vars))] : []),
     ``,
     `ON ITS WAY TO`,
     ...args.address.map((l) => `  ${l}`),
-    ``,
-    `Thank you for supporting handmade.`,
+    ...(plain(args.signoff) ? [``, plain(args.signoff)] : []),
   ].join("\n");
 
   return {
     to: args.customerEmail,
-    subject: `${args.orderNumber} has shipped`,
+    subject: fillCopy(args.copy.subject, vars),
     html,
     text,
   };
@@ -398,15 +434,16 @@ export function contactReceived(args: {
   name: string;
   body: string;
   location: string;
-  reply: string; // Polly's wording, from the site editor
+  copy: EmailCopy; // her wording, from the site editor
 }): Mail {
   const firstName = args.name.split(" ")[0] || "there";
+  const vars = { name: firstName, brand: args.brand };
 
   const html = shell(
     args.brand,
-    `Thanks, ${firstName} — we've got your message`,
+    fillCopy(args.copy.heading, vars),
     `
-    ${paragraphs(args.reply, INK_SOFT)}
+    ${paragraphs(fillBody(args.copy.message, vars), INK_SOFT)}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:6px 0 6px;">What you sent</div>
     <div style="background:${CREAM};border:1px solid ${HAIR};border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${esc(args.body)}</div>
   `,
@@ -414,9 +451,9 @@ export function contactReceived(args: {
   );
 
   const text = [
-    `Thanks, ${firstName} — we've got your message`,
+    fillCopy(args.copy.heading, vars),
     ``,
-    plain(args.reply),
+    plain(fillBody(args.copy.message, vars)),
     ``,
     `WHAT YOU SENT`,
     args.body,
@@ -424,7 +461,7 @@ export function contactReceived(args: {
 
   return {
     to: "",
-    subject: `We got your message — ${args.brand}`,
+    subject: fillCopy(args.copy.subject, vars),
     html,
     text,
   };
@@ -435,6 +472,8 @@ export function contactReceived(args: {
 // holds its stock and represents a sale not yet collected, but only Polly
 // can judge whether a nudge is welcome or premature.
 export function venmoReminder(args: {
+  copy: EmailCopy;
+  signoff: string;
   brand: string;
   orderNumber: string;
   customerName: string;
@@ -443,15 +482,13 @@ export function venmoReminder(args: {
   location: string;
 }): Mail {
   const firstName = args.customerName.split(" ")[0] || "there";
+  const vars = { name: firstName, order: args.orderNumber, brand: args.brand };
 
   const html = shell(
     args.brand,
-    `A reminder about order ${args.orderNumber}`,
+    fillCopy(args.copy.heading, vars),
     `
-    <p style="margin:0 0 6px;font-size:14px;line-height:1.65;color:${INK_SOFT};">
-      Hi ${esc(firstName)} — your pieces are still set aside, and we haven't
-      seen the Venmo come through yet.
-    </p>
+    ${paragraphs(fillBody(args.copy.message, vars), INK_SOFT)}
     <div style="background:#F4E4C6;border:1px solid #E0C68F;border-radius:10px;padding:16px;margin:18px 0;">
       <p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#6B4A12;">
         Send <strong>${money(args.totalCents)}</strong> on Venmo${
@@ -472,9 +509,9 @@ export function venmoReminder(args: {
   );
 
   const text = [
-    `A reminder about order ${args.orderNumber}`,
+    fillCopy(args.copy.heading, vars),
     ``,
-    `Hi ${firstName} — your pieces are still set aside, and we haven't seen the Venmo yet.`,
+    plain(fillBody(args.copy.message, vars)),
     ``,
     `Send ${money(args.totalCents)} on Venmo${args.venmoHandle ? ` to ${args.venmoHandle}` : ""},`,
     `with ${args.orderNumber} in the note.`,
@@ -485,7 +522,7 @@ export function venmoReminder(args: {
 
   return {
     to: "",
-    subject: `Reminder: your ${args.brand} order ${args.orderNumber}`,
+    subject: fillCopy(args.copy.subject, vars),
     html,
     text,
   };

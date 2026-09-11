@@ -78,7 +78,7 @@ export async function sendContactMessage(input: {
         body,
         brand: settings.brand,
         location: settings.contact.location,
-        reply: settings.emails.contactReply,
+        copy: settings.emails.contactReply,
         contactEmail: settings.contact.email,
       }),
     ]);

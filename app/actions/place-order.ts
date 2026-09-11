@@ -161,7 +161,7 @@ export async function placeVenmoOrder(
       venmoHandle: settings.venmoHandle,
       brand: settings.brand,
       // Her wording, edited at /admin/content.
-      note: settings.emails.confirmationNote,
+      copy: settings.emails.confirmation,
       signoff: settings.emails.signoff,
       // Replies reach her, not the send-only from-address.
       contactEmail: settings.contact.email,
