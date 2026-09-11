@@ -595,22 +595,49 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
           for you and can&apos;t be deleted by accident.
         </p>
 
-        <label
-          className="ad-toggle"
-          style={{ textTransform: "none", fontSize: 13, letterSpacing: 0, marginBottom: 16 }}
-        >
-          <input
-            type="checkbox"
-            checked={s.emails.notifyOnOrder}
-            onChange={(e) => patch({ emails: { ...s.emails, notifyOnOrder: e.target.checked } })}
-          />
-          Email me when an order comes in
-        </label>
-        <span className="ad-help" style={{ marginTop: -8, marginBottom: 16, display: "block" }}>
-          Every order shows on your Orders tab either way. Turn this off if the
-          emails are burying the messages you actually need to answer — but then
-          nothing tells you an order arrived until you next open the admin.
-        </span>
+        {/* Only the two emails addressed to HER are optional. The three sent
+            to customers stay on: someone who gets no confirmation assumes
+            their order failed. */}
+        <div className="ad-notify">
+          <span className="ad-lbl">What gets emailed to you</span>
+          <span className="ad-help" style={{ marginTop: 4, marginBottom: 10, display: "block" }}>
+            Both of these also show up in your admin whatever you choose here —
+            orders on the Orders tab, messages under Special requests. These
+            switches only decide whether your inbox hears about them too.
+          </span>
+
+          <label className="ad-toggle ad-notifyrow">
+            <input
+              type="checkbox"
+              checked={s.emails.notifyOnOrder}
+              onChange={(e) => patch({ emails: { ...s.emails, notifyOnOrder: e.target.checked } })}
+            />
+            <span>
+              <b>When an order comes in</b>
+              <span className="ad-help">
+                Safe to turn off if the emails are burying the messages you
+                actually need to answer — the order is already sitting on your
+                board. You just won&apos;t know it arrived until you look.
+              </span>
+            </span>
+          </label>
+
+          <label className="ad-toggle ad-notifyrow">
+            <input
+              type="checkbox"
+              checked={s.emails.notifyOnMessage}
+              onChange={(e) => patch({ emails: { ...s.emails, notifyOnMessage: e.target.checked } })}
+            />
+            <span>
+              <b>When someone sends you a message</b>
+              <span className="ad-help">
+                Worth keeping on. Unlike an order, a message is someone waiting
+                for a reply — and if you don&apos;t see it for a week, they
+                assume you ignored them.
+              </span>
+            </span>
+          </label>
+        </div>
 
         <div className="ad-field">
           <span className="ad-lbl">Order confirmation — your message</span>

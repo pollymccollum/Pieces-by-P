@@ -62,6 +62,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   },
   emails: {
     notifyOnOrder: true,
+    notifyOnMessage: true,
     confirmationNote: "Each piece is handmade to order and ships in about a week.",
     signoff: "Thank you for supporting a small handmade shop.",
     contactReply:

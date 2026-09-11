@@ -1103,6 +1103,39 @@
 }
 /* Shows the box as the customer meets it, so checking her wording doesn't
    mean opening the shop in another tab and clicking into a piece. */
+/* Her notification switches, grouped so the two read as one decision
+   rather than a stray checkbox above the wording fields. */
+.ad-notify {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  background: var(--cream);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+}
+.ad-notifyrow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-transform: none;
+  font-size: 13px;
+  letter-spacing: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--hair);
+}
+.ad-notifyrow input {
+  margin-top: 2px;
+  flex: none;
+}
+.ad-notifyrow b {
+  display: block;
+  font-weight: 500;
+  color: var(--ink);
+}
+.ad-notifyrow .ad-help {
+  display: block;
+  margin-top: 3px;
+}
+
 .ad-boxprev {
   margin-top: 16px;
   background: var(--cream);

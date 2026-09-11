@@ -142,6 +142,10 @@ export type ContactContent = {
 // order number, items, totals, address, the Venmo instructions — stay
 // generated, so editing the friendly part can't break the useful part.
 export type EmailContent = {
+  // Which of the two emails addressed to HER actually get sent. The three
+  // sent to customers are not optional: someone who gets no confirmation
+  // assumes their order failed.
+  //
   // Whether an order emails her as well as appearing on her board.
   //
   // Genuinely arguable both ways: the order is already in the admin, so the
@@ -150,6 +154,10 @@ export type EmailContent = {
   // no signal at all until she next opens the admin, which on a Friday night
   // order means Monday. Hers to settle, not ours.
   notifyOnOrder: boolean;
+  // Whether a contact-form message emails her. Riskier to switch off than
+  // the order one: an order is already recorded and waiting, where an
+  // unanswered enquiry is a customer who thinks she ignored them.
+  notifyOnMessage: boolean;
   // Sits under "Thank you, <first name>!" in the order confirmation.
   confirmationNote: string;
   // Closing line on the confirmation, above the footer.

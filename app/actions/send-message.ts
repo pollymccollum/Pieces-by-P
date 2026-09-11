@@ -61,13 +61,17 @@ export async function sendContactMessage(input: {
   try {
     const settings = await getSiteSettings();
     await Promise.allSettled([
-      notifyOwnerOfMessage({
-        name,
-        email,
-        body,
-        brand: settings.brand,
-        contactEmail: settings.contact.email,
-      }),
+      // Her alert is hers to switch off. The sender's receipt below is not —
+      // they wrote in and deserve to know it arrived.
+      settings.emails.notifyOnMessage
+        ? notifyOwnerOfMessage({
+            name,
+            email,
+            body,
+            brand: settings.brand,
+            contactEmail: settings.contact.email,
+          })
+        : Promise.resolve(),
       sendContactAutoReply({
         to: email,
         name,
