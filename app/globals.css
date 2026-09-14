@@ -1606,11 +1606,26 @@ button {
 }
 
 @media (max-width: 640px) {
-  .pp-navlink.hideM {
-    display: none;
+  /* The nav used to be hidden entirely here, which left About and Contact
+     with a logo and a Cart button and no way back to the shop at all — the
+     browser's back button was the only exit. Phones are where most of this
+     shop's traffic will land, so the nav stays and gets tighter instead. */
+  .pp-nav {
+    gap: 13px;
+  }
+  .pp-navlink {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 6px 0;
+  }
+  .pp-cartbtn .pp-navlink {
+    letter-spacing: 0.08em !important;
   }
   .pp-fields {
     grid-template-columns: 1fr;
+  }
+  .pp-wrap {
+    padding: 0 16px;
   }
 }
 @media (min-width: 641px) {

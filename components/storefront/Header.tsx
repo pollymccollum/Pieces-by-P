@@ -37,10 +37,14 @@ export function Header({
   return (
     <header className="pp-header">
       <div className="pp-wrap pp-headrow">
-        {/* On the shop page the wordmark scrolls to the top. Everywhere
-            else it is plain, non-interactive text: as a link it took on
-            underline-and-visited-purple and read as a mistake. Shop in the
-            nav, or the browser's back button, is how you get back. */}
+        {/* On the shop page it scrolls to the top; everywhere else it goes
+            home, which is what people already try first.
+
+            It was left inert once before because as a link it picked up
+            underline-and-visited-purple and read as broken. That was a
+            styling bug, since fixed — the logo now looks identical whether
+            it's a link or not, so there's no reason to withhold the one
+            behaviour every shopper expects of it. */}
         {onHome ? (
           <button className="pp-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
             <BrandMark
@@ -52,7 +56,7 @@ export function Header({
             />
           </button>
         ) : (
-          <span className="pp-brand">
+          <Link className="pp-brand" href="/" aria-label={`${brand} — back to the shop`}>
             <BrandMark
               brand={brand}
               logoUrl={logoUrl}
@@ -60,7 +64,7 @@ export function Header({
               brandFont={brandFont}
               showWord={false}
             />
-          </span>
+          </Link>
         )}
 
         {/* Centred on the page rather than sitting beside the mark, so it stays
