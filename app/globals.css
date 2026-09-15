@@ -1541,9 +1541,13 @@ button {
   gap: 12px;
 }
 
+/* The same green as the announcement band, so the page opens and closes on
+   one colour. Every text colour below flips with it: on a pale ground the
+   old near-white wordmark and grey fine print would have been invisible. */
 .pp-footer {
-  background: var(--ink);
-  color: #d8d2c2;
+  background: var(--band);
+  color: var(--btn-deep);
+  border-top: 1px solid rgba(51, 60, 47, 0.14);
   padding-top: 34px;
   /* Deliberately deeper than the top: floating widgets (host badges, cookie
      banners, chat bubbles) live in the bottom-right corner and would sit on
@@ -1563,7 +1567,7 @@ button {
   font-size: 20px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--cream);
+  color: var(--btn-deep);
   background: none;
   border: none;
 }
@@ -1573,17 +1577,15 @@ button {
   flex-wrap: wrap;
   justify-content: center;
 }
-/* Anchors here now, so they need colours of their own — the browser's blue,
-   and then visited purple, was close to unreadable on a near-black bar.
-   Pale green from the owner's own palette, the same colour as the
-   announcement band at the top, which ties the two ends of the page
-   together. Around 11:1 against --ink, so it reads easily at 11px. */
+/* Anchors need colours of their own, or they take the browser's blue and then
+   visited purple. Her deep green reads about 10:1 on the band — comfortable
+   at 11px, where the sage would have been nearer 3.5:1 and failed. */
 .pp-flinks a,
 .pp-flinks button {
   background: none;
   border: none;
   padding: 0;
-  color: var(--band);
+  color: var(--btn-deep);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1591,17 +1593,19 @@ button {
   font-family: inherit;
 }
 .pp-flinks a:visited {
-  color: var(--band);
+  color: var(--btn-deep);
 }
 .pp-flinks a:hover,
 .pp-flinks button:hover {
-  color: #fff;
+  color: var(--ink);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
+/* Secondary, but still has to be readable. A lighter grey-green would drop
+   under 4.5:1 against the band, which is the floor for text this small. */
 .pp-fine {
   font-size: 10.5px;
-  color: #847e6e;
+  color: #4d5838;
   letter-spacing: 0.06em;
 }
 

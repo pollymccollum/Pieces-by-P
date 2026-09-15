@@ -28,8 +28,12 @@ export function Footer({ brand, location }: { brand: string; location: string })
             )
           )}
         </div>
+        {/* "Handmade in ·" with nothing after it is what showed when the
+            location was left blank. The phrase only makes sense with a place
+            in it, so without one it drops out entirely. */}
         <span className="pp-fine">
-          Handmade in {location} · © {new Date().getFullYear()} {brand}
+          {location.trim() ? `Handmade in ${location.trim()} · ` : ""}© {new Date().getFullYear()}{" "}
+          {brand}
         </span>
       </div>
     </footer>
