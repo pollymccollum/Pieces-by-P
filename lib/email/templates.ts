@@ -435,6 +435,7 @@ export function contactReceived(args: {
   body: string;
   location: string;
   copy: EmailCopy; // her wording, from the site editor
+  signoff: string;
 }): Mail {
   const firstName = args.name.split(" ")[0] || "there";
   const vars = { name: firstName, brand: args.brand };
@@ -446,6 +447,7 @@ export function contactReceived(args: {
     ${paragraphs(fillBody(args.copy.message, vars), INK_SOFT)}
     <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${SAGE_DEEP};padding:6px 0 6px;">What you sent</div>
     <div style="background:${CREAM};border:1px solid ${HAIR};border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.65;color:${INK};white-space:pre-wrap;">${esc(args.body)}</div>
+    ${args.signoff.trim() ? `<div style="border-top:1px solid ${HAIR};margin-top:20px;padding-top:16px;">${paragraphs(args.signoff, INK)}</div>` : ""}
   `,
     args.location
   );
@@ -457,6 +459,7 @@ export function contactReceived(args: {
     ``,
     `WHAT YOU SENT`,
     args.body,
+    ...(plain(args.signoff) ? [``, plain(args.signoff)] : []),
   ].join(NEWLINE);
 
   return {
@@ -504,6 +507,7 @@ export function venmoReminder(args: {
       anything, and apologies for the nudge. Changed your mind? Reply to this
       email and we'll release the pieces.
     </p>
+    ${args.signoff.trim() ? `<div style="border-top:1px solid ${HAIR};margin-top:20px;padding-top:16px;">${paragraphs(args.signoff, INK)}</div>` : ""}
   `,
     args.location
   );
@@ -518,6 +522,7 @@ export function venmoReminder(args: {
     ``,
     `Already sent it? It just hasn't been matched up yet — nothing to do.`,
     `Changed your mind? Reply and we'll release the pieces.`,
+    ...(plain(args.signoff) ? [``, plain(args.signoff)] : []),
   ].join(NEWLINE);
 
   return {

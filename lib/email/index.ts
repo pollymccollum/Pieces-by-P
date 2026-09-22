@@ -185,6 +185,7 @@ export async function sendContactAutoReply(args: {
   brand: string;
   location: string;
   copy: EmailCopy;
+  signoff: string;
   contactEmail?: string;
 }): Promise<void> {
   if (!isEmailConfigured() || !args.to) return;
@@ -194,6 +195,7 @@ export async function sendContactAutoReply(args: {
     body: args.body,
     location: args.location,
     copy: args.copy,
+    signoff: args.signoff,
   });
   await sendMail({ ...mail, to: args.to, replyTo: replyToFor(args.contactEmail) });
 }
