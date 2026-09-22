@@ -149,6 +149,7 @@ export function Storefront({
         heroImageMobileUrl={settings.heroImageMobileUrl}
         heroLayout={settings.heroLayout}
         heroFit={settings.heroFit}
+        heroMobileCrop={settings.heroMobileCrop}
         fonts={settings.fonts}
       />
     ),

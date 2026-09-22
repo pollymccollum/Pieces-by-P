@@ -1629,12 +1629,21 @@ button {
 @media (max-width: 640px) {
   /* A collage is wide. The hero band is a fixed height, so on a phone it is
      close to square — and `cover` then throws away most of the width to fill
-     it, which is why Polly's collage arrived cropped to its middle third.
-     Desktop is fine: there the band is wide enough that little is lost.
+     it, which is why Polly's collage first arrived cropped to its middle
+     third. Desktop is fine: there the band is wide enough that little is lost.
 
-     On a phone the image sets the height instead of the band setting it. No
-     crop, and no letterbox bars either, because the box ends up exactly the
-     shape of the picture — whatever shape she makes it next time.
+     So on a phone the band stops having a height of its own, and the picture
+     is given a shape instead — whichever one she picked in the site editor:
+
+       --hero-mcrop unset  → aspect-ratio: auto, height: auto. The picture
+                             keeps its own proportions and all of it shows.
+       --hero-mcrop set    → the picture is that shape whatever it started
+                             as, and `cover` trims the sides to fill it.
+
+     The shape is a ratio, not a pixel height, which is what makes this
+     self-adjusting: the band grows with the screen (taller on a Pro Max than
+     on an SE), and a new collage of any proportions fills it exactly — never
+     letterboxed, never leaving a gap, never needing a number changed here.
 
      Only the two layouts where the image is the full-width band. 'side' and
      'background' put it behind or beside text and need their fixed height. */
@@ -1651,7 +1660,11 @@ button {
     width: 100%;
     height: auto;
     display: block;
-    object-fit: contain;
+    aspect-ratio: var(--hero-mcrop, auto);
+    /* Harmless when the shape is `auto`: the box is then already the
+       picture's own shape, so there is nothing for `cover` to trim. */
+    object-fit: cover;
+    object-position: center;
   }
   /* Without a photo the illustration still needs somewhere to sit. */
   .pp-hero.layout-top .pp-hero-art:not(.haspic),

@@ -349,6 +349,40 @@ export const HERO_LAYOUTS = {
 } as const;
 export type HeroLayout = keyof typeof HERO_LAYOUTS;
 
+// How much of the collage a phone shows.
+//
+// A wide collage on a narrow screen can only do one of two things: shrink
+// until every bead is a speck, or show a taller slice of its middle. This
+// picks which, and only below 640px — the desktop band is wide enough
+// that nothing has to be given up there.
+//
+// Shapes rather than pixel heights, so the band scales with the phone and
+// so a new collage of any shape still fills it exactly — no letterbox
+// bars, no leftover gap, nothing to re-measure when she swaps the picture.
+export const HERO_MOBILE_CROPS = {
+  whole: {
+    label: "Show all of it",
+    help: "The band is exactly as tall as the picture. Make it skinnier or taller in Canva and the website follows.",
+    ratio: null,
+  },
+  short: {
+    label: "Short band",
+    help: "A wide strip from the middle. Reaches the pieces fastest.",
+    ratio: "3 / 2",
+  },
+  square: {
+    label: "Square",
+    help: "An even crop from the middle.",
+    ratio: "1 / 1",
+  },
+  tall: {
+    label: "Tall band",
+    help: "Fills most of the screen. Trims the left and right edges.",
+    ratio: "4 / 5",
+  },
+} as const;
+export type HeroMobileCrop = keyof typeof HERO_MOBILE_CROPS;
+
 // Hero banner height, phone / desktop.
 // Two heights each: the first applies on phones, the second from tablet up.
 // Nudged up ~10% in Aug 2026 — the owner wanted her collage a little taller
@@ -404,6 +438,8 @@ export type SiteSettingsData = {
   // 'contain' shows the whole image — what a collage needs. 'cover' fills
   // the frame and crops, which suits a single photo.
   heroFit: PhotoFit;
+  // Phones only — see HERO_MOBILE_CROPS.
+  heroMobileCrop: HeroMobileCrop;
   accent: AccentKey;
   sections: SectionSetting[];
   hero: HeroContent;

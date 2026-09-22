@@ -1,6 +1,12 @@
 "use client";
 
-import type { HeroContent, HeroLayout, PhotoFit } from "@/lib/types";
+import {
+  HERO_MOBILE_CROPS,
+  type HeroContent,
+  type HeroLayout,
+  type HeroMobileCrop,
+  type PhotoFit,
+} from "@/lib/types";
 import { fontStyle, type FontChoices } from "@/lib/fonts";
 import { StrandArt } from "./visuals";
 
@@ -10,6 +16,7 @@ export function Hero({
   heroImageMobileUrl,
   heroLayout,
   heroFit,
+  heroMobileCrop,
   fonts,
 }: {
   hero: HeroContent;
@@ -17,12 +24,20 @@ export function Hero({
   heroImageMobileUrl: string | null;
   heroLayout: HeroLayout;
   heroFit: PhotoFit;
+  heroMobileCrop: HeroMobileCrop;
   fonts: FontChoices;
 }) {
   return (
     <section
       className={`pp-hero layout-${heroLayout}`}
-      style={{ ["--hero-fit" as string]: heroFit }}
+      style={{
+        ["--hero-fit" as string]: heroFit,
+        // Left unset for "show all of it", which is the point: the CSS
+        // falls back to `auto`, and the picture keeps its own shape.
+        ...(HERO_MOBILE_CROPS[heroMobileCrop].ratio
+          ? { ["--hero-mcrop" as string]: HERO_MOBILE_CROPS[heroMobileCrop].ratio }
+          : {}),
+      }}
     >
       {heroLayout === "image" ? (
         /* Image-only: no visible hero text. The headline stays in the DOM,

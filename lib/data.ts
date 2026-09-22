@@ -35,6 +35,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   heroSize: "medium",
   heroLayout: "side",
   heroFit: "cover",
+  heroMobileCrop: "whole",
   accent: "coral",
   sections: [
     { id: "hero", show: true },

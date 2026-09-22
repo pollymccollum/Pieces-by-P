@@ -5,12 +5,14 @@ import {
   ACCENTS,
   GRID_SIZES,
   HERO_LAYOUTS,
+  HERO_MOBILE_CROPS,
   HERO_SIZES,
   PHOTO_FITS,
   PHOTO_SHAPES,
   type AccentKey,
   type GridSize,
   type HeroLayout,
+  type HeroMobileCrop,
   type HeroSize,
   type PhotoFit,
   type PhotoShape,
@@ -488,6 +490,31 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
             <span className="ad-help" style={{ marginTop: 6 }}>
               A collage needs <b>Show the whole photo</b> — otherwise the edges get
               cut off and pieces disappear.
+            </span>
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <span className="ad-lbl">How much shows on a phone</span>
+            <div className="ad-optrow">
+              {(Object.keys(HERO_MOBILE_CROPS) as HeroMobileCrop[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`ad-opt wide ${s.heroMobileCrop === key ? "on" : ""}`}
+                  onClick={() => patch({ heroMobileCrop: key })}
+                >
+                  <strong style={{ fontWeight: 400 }}>
+                    {HERO_MOBILE_CROPS[key].label}
+                  </strong>
+                  <span className="ad-opt-help">{HERO_MOBILE_CROPS[key].help}</span>
+                </button>
+              ))}
+            </div>
+            <span className="ad-help" style={{ marginTop: 6 }}>
+              Phones only, and only for the two full-width layouts. A wide collage
+              shown whole on a phone shrinks to a thin strip; a taller band shows
+              fewer pieces but shows them properly. Whichever you pick, the band
+              resizes itself to the photo — there is no size you have to match.
             </span>
           </div>
         </div>
