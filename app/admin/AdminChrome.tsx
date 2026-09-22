@@ -14,6 +14,8 @@ const TABS = [
   { href: "/admin/messages", label: "Special requests" },
   { href: "/admin/products", label: "Pieces" },
   { href: "/admin/content", label: "Site content" },
+  // Last, because it is the one she sets up once and then rarely opens.
+  { href: "/admin/emails", label: "Emails" },
 ];
 
 export function AdminChrome({ children }: { children: React.ReactNode }) {
