@@ -139,7 +139,13 @@ button {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(250, 246, 236, 0.9);
+  /* Translucent, so the collage shows faintly through as it scrolls under.
+     The rgba line is the same colour written out, kept underneath as the
+     fallback for browsers without color-mix. Both have to be --cream: this
+     bar was left holding the old beige by hand when the palette changed,
+     and a strip of the previous colour sat across the top of every page. */
+  background: rgba(255, 254, 250, 0.9);
+  background: color-mix(in srgb, var(--cream) 90%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--hair);
 }
@@ -451,11 +457,13 @@ button {
   content: "";
   position: absolute;
   inset: 0;
+  /* Fades the photo out under the words so light type stays readable.
+     --cream again, for the same reason as the header. */
   background: linear-gradient(
     100deg,
-    rgba(250, 246, 236, 0.94) 0%,
-    rgba(250, 246, 236, 0.82) 45%,
-    rgba(250, 246, 236, 0.35) 100%
+    color-mix(in srgb, var(--cream) 94%, transparent) 0%,
+    color-mix(in srgb, var(--cream) 82%, transparent) 45%,
+    color-mix(in srgb, var(--cream) 35%, transparent) 100%
   );
 }
 .pp-hero.layout-background .pp-hero-copy {
