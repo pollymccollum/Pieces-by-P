@@ -380,6 +380,12 @@ export type SiteSettingsData = {
   venmoHandle: string; // shown on the orders page when chasing a Venmo payment
   categories: string[];
   heroImageUrl: string | null; // Supabase Storage URL; null = beaded-strand illustration
+  // An optional second collage for phones. A wide collage can only ever be
+  // cropped or reduced to a thin strip on a narrow screen, so the real fix
+  // is a differently-shaped picture rather than a cleverer rule.
+  //
+  // null means phones get heroImageUrl, exactly as before.
+  heroImageMobileUrl: string | null;
   // Photo of the owner on the About page. null = the shop's illustration
   // and a nudge in the admin to upload one.
   aboutImageUrl: string | null;

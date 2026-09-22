@@ -7,12 +7,14 @@ import { StrandArt } from "./visuals";
 export function Hero({
   hero,
   heroImageUrl,
+  heroImageMobileUrl,
   heroLayout,
   heroFit,
   fonts,
 }: {
   hero: HeroContent;
   heroImageUrl: string | null;
+  heroImageMobileUrl: string | null;
   heroLayout: HeroLayout;
   heroFit: PhotoFit;
   fonts: FontChoices;
@@ -53,8 +55,18 @@ export function Hero({
       )}
       <div className={`pp-hero-art ${heroImageUrl ? "haspic" : ""}`}>
         {heroImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImageUrl} alt="" className="pp-photo" />
+          // <picture> rather than a JS width check: the browser picks the
+          // source before it fetches anything, so a phone never downloads
+          // the desktop collage, and there is no flash of the wrong one.
+          //
+          // With no phone image the <source> isn't rendered at all and this
+          // is exactly the single <img> it has always been.
+          <picture>
+            {heroImageMobileUrl && (
+              <source media="(max-width: 640px)" srcSet={heroImageMobileUrl} />
+            )}
+            <img src={heroImageUrl} alt="" className="pp-photo" />
+          </picture>
         ) : (
           <StrandArt
             category="Necklaces"

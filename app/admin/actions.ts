@@ -806,6 +806,11 @@ export async function uploadHeroPhoto(formData: FormData) {
 }
 
 // Her own photo, for the About page.
+// The optional phone-shaped version of the hero collage.
+export async function uploadHeroMobilePhoto(formData: FormData) {
+  return uploadSiteImage("hero-mobile", formData);
+}
+
 export async function uploadAboutPhoto(formData: FormData) {
   return uploadSiteImage("about", formData);
 }

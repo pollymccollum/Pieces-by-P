@@ -24,6 +24,7 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
   venmoHandle: "",
   categories: ["Necklaces", "Bracelets", "Chokers", "Charms"],
   heroImageUrl: null,
+  heroImageMobileUrl: null,
   aboutImageUrl: null,
   logoUrl: null,
   logoHeight: 40,

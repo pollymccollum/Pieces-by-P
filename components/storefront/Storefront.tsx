@@ -146,6 +146,7 @@ export function Storefront({
         key="hero"
         hero={settings.hero}
         heroImageUrl={settings.heroImageUrl}
+        heroImageMobileUrl={settings.heroImageMobileUrl}
         heroLayout={settings.heroLayout}
         heroFit={settings.heroFit}
         fonts={settings.fonts}

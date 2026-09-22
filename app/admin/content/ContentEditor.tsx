@@ -17,7 +17,13 @@ import {
   type SectionId,
   type SiteSettingsData,
 } from "@/lib/types";
-import { saveSettings, uploadAboutPhoto, uploadHeroPhoto, uploadLogo } from "../actions";
+import {
+  saveSettings,
+  uploadAboutPhoto,
+  uploadHeroMobilePhoto,
+  uploadHeroPhoto,
+  uploadLogo,
+} from "../actions";
 import { FontPicker } from "./FontPicker";
 import { downscaleImage } from "@/lib/image-downscale";
 import { PLACEHOLDERS, suggestFor, unknownPlaceholders } from "@/lib/email-placeholders";
@@ -130,6 +136,23 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         fd.set("photo", await downscaleImage(file));
         const res = await uploadHeroPhoto(fd);
         if (res.ok && res.url) patch({ heroImageUrl: res.url });
+        else if (!res.ok) setError(res.error);
+      } catch {
+        setError(
+          "That image couldn't be uploaded — it may be too large or in a format browsers can't read. Try one saved as JPEG."
+        );
+      }
+    });
+  };
+
+  const uploadHeroMobile = (file: File) => {
+    setError(null);
+    start(async () => {
+      try {
+        const fd = new FormData();
+        fd.set("photo", await downscaleImage(file));
+        const res = await uploadHeroMobilePhoto(fd);
+        if (res.ok && res.url) patch({ heroImageMobileUrl: res.url });
         else if (!res.ok) setError(res.error);
       } catch {
         setError(
@@ -384,6 +407,45 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
                 }}
               />
             </label>
+          </div>
+
+          <div className="ad-field" style={{ marginTop: 16 }}>
+            <span className="ad-lbl">Phone version (optional)</span>
+            <span className="ad-help" style={{ marginBottom: 8, display: "block" }}>
+              A wide collage can only ever be cropped or squashed into a thin
+              strip on a phone. Upload a taller, squarer version here and phones
+              will use it instead. Leave it empty and phones use the one above.
+            </span>
+            <div className="ad-photos">
+              {s.heroImageMobileUrl && (
+                <div className="ad-photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.heroImageMobileUrl} alt="" />
+                  <button
+                    type="button"
+                    className="rm"
+                    title="Remove"
+                    onClick={() => patch({ heroImageMobileUrl: null })}
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+              <label className="ad-upload" title="Upload a phone version">
+                +
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  disabled={pending}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) uploadHeroMobile(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
           </div>
           <span className="ad-help">
             Export from Canva as <b>PNG</b> or JPG — not PDF. A PDF is a document,

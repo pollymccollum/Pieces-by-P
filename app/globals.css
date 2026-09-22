@@ -138,13 +138,25 @@ button {
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--hair);
 }
+/* The header ignores the 1180px measure the rest of the page keeps to.
+   On a wide monitor that measure left the nav floating in from the edge with
+   a few hundred pixels of nothing beside it, while the collage directly
+   below ran the full width — the two read as different pages. Logo hard
+   left, nav hard right, matching the band under them. */
 .pp-headrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 66px;
+  max-width: none;
+  padding: 0 22px;
   /* Anchors the centred wordmark below. */
   position: relative;
+}
+@media (min-width: 641px) {
+  .pp-headrow {
+    padding: 0 34px;
+  }
 }
 .pp-brand {
   display: flex;
@@ -370,7 +382,12 @@ button {
   padding: 0;
   min-height: var(--hero-h-sm, 300px);
 }
-.pp-hero.layout-image .pp-hero-art .pp-photo {
+.pp-hero.layout-image /* <picture> is only a wrapper for choosing a source; it must not become a
+   layout box, or the image inside stops filling the band. */
+.pp-hero-art picture {
+  display: contents;
+}
+.pp-hero-art .pp-photo {
   position: absolute;
   inset: 0;
   width: 100%;
