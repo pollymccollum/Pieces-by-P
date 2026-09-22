@@ -28,7 +28,7 @@ export default function GlobalError({
           alignItems: "center",
           justifyContent: "center",
           padding: 24,
-          background: "#FAF6EC",
+          background: "#FFFEFA",
           color: "#2B2A24",
           fontFamily: "Georgia, 'Times New Roman', serif",
         }}

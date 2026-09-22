@@ -36,7 +36,7 @@ function SetupNotice() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FAF6EC",
+        background: "#FFFEFA",
         color: "#2B2A24",
         fontFamily: "system-ui, sans-serif",
         padding: 24,

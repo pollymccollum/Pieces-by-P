@@ -7,8 +7,13 @@
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  --cream: #faf6ec;
-  --cream2: #f2ebd8;
+  /* Lightened Sept 2026 at the owner's request. --cream and --collection
+     are now the same near-white: the collection band covers most of the
+     page, and any warmer surface showing beside it read as a dirty patch
+     rather than as a second colour. --cream2 keeps its old step down from
+     --cream, so the one gradient that uses it stays as subtle as it was. */
+  --cream: #fffefa;
+  --cream2: #f7f3e6;
   --surface: #fffdf7;
   --ink: #2b2a24;
   --ink-soft: #6e6a5c;
@@ -23,7 +28,7 @@
   /* Owner's chosen palette (Aug 2026). Kept as named roles so a future
      change is one line here rather than a hunt through the file. */
   --band: #e1f1b9; /* announcement bar + contact band */
-  --collection: #fffdf3; /* the shop grid's background */
+  --collection: #fffefa; /* hero copy, shop grid and About — one surface */
   --btn-deep: #333c2f; /* send message button */
   --serif: var(--font-fraunces), Georgia, serif;
   --script: var(--font-dancing), cursive;
