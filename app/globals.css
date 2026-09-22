@@ -1610,6 +1610,39 @@ button {
 }
 
 @media (max-width: 640px) {
+  /* A collage is wide. The hero band is a fixed height, so on a phone it is
+     close to square — and `cover` then throws away most of the width to fill
+     it, which is why Polly's collage arrived cropped to its middle third.
+     Desktop is fine: there the band is wide enough that little is lost.
+
+     On a phone the image sets the height instead of the band setting it. No
+     crop, and no letterbox bars either, because the box ends up exactly the
+     shape of the picture — whatever shape she makes it next time.
+
+     Only the two layouts where the image is the full-width band. 'side' and
+     'background' put it behind or beside text and need their fixed height. */
+  .pp-hero.layout-top .pp-hero-art,
+  .pp-hero.layout-image .pp-hero-art {
+    min-height: 0;
+    padding: 0;
+    display: block;
+  }
+  .pp-hero.layout-top .pp-hero-art .pp-photo,
+  .pp-hero.layout-image .pp-hero-art .pp-photo {
+    position: static;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+  /* Without a photo the illustration still needs somewhere to sit. */
+  .pp-hero.layout-top .pp-hero-art:not(.haspic),
+  .pp-hero.layout-image .pp-hero-art:not(.haspic) {
+    min-height: var(--hero-h-sm, 300px);
+    display: flex;
+  }
+
   /* The nav used to be hidden entirely here, which left About and Contact
      with a logo and a Cart button and no way back to the shop at all — the
      browser's back button was the only exit. Phones are where most of this
