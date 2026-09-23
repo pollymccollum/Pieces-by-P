@@ -241,9 +241,16 @@ button {
   white-space: nowrap;
   pointer-events: none;
 }
-@media (max-width: 720px) {
-  /* Not enough room between the logo and the cart for it to be centred
-     without colliding with one of them. The logo carries the name anyway. */
+@media (max-width: 900px) {
+  /* Not enough room between the logo and the nav for it to be centred
+     without colliding with one of them. The logo carries the name anyway.
+
+     900 rather than a tighter number because the collision point isn't
+     fixed: the wordmark is centred on the PAGE, so it meets the nav when
+     half the viewport drops below the nav's width plus half the wordmark's
+     — about 800px, and ~40px more once the cart is carrying a count badge.
+     Being early here costs nothing (the header still reads logo-left,
+     nav-right), where being late puts two words on top of each other. */
   .pp-word-mid {
     display: none;
   }
