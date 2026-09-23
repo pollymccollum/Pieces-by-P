@@ -400,8 +400,10 @@ button {
   padding: 0;
   min-height: var(--hero-h-sm, 300px);
 }
-.pp-hero.layout-image /* <picture> is only a wrapper for choosing a source; it must not become a
-   layout box, or the image inside stops filling the band. */
+/* <picture> is only a wrapper for choosing a source; it must not become a
+   layout box, or the image inside stops filling the band. The comment used
+   to sit between the two selectors, which ate the comma and quietly turned
+   this into a descendant selector that reached only one layout. */
 .pp-hero-art picture {
   display: contents;
 }
@@ -410,6 +412,45 @@ button {
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+/* With a photo in it, the two full-width layouts take their height from the
+   picture instead of imposing one on it.
+
+   The band used to be a fixed height at every width — 375px on a desktop.
+   `cover` then had to scale the collage up until it filled that width, and
+   crop whatever no longer fitted vertically. The wider the monitor, the more
+   it scaled and the more it cut, so a 27" screen lost the most: the top and
+   bottom rows of a collage disappeared entirely. Zooming in appeared to fix
+   it only because zoom narrows the CSS viewport, which is the same thing as
+   using a smaller monitor.
+
+   Letting the picture set the height means the band is exactly its shape at
+   every width. Nothing is cropped, there are no letterbox gaps either, and
+   the collage just scales with the window.
+
+   Scoped to .haspic and to these two layouts on purpose: 'side' and
+   'background' put the image beside or behind text and need a height of
+   their own, and so does the beaded illustration that stands in before she
+   has uploaded anything. Four classes, so these win over the fixed heights
+   set further down whatever the source order. */
+.pp-hero.layout-top .pp-hero-art.haspic,
+.pp-hero.layout-image .pp-hero-art.haspic {
+  min-height: 0;
+  padding: 0;
+  display: block;
+}
+.pp-hero.layout-top .pp-hero-art.haspic .pp-photo,
+.pp-hero.layout-image .pp-hero-art.haspic .pp-photo {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  display: block;
+  /* Only bites on a phone, where she can choose a shape to crop to. With no
+     shape set the box is already the picture's, so there is nothing to trim. */
+  object-fit: cover;
+  object-position: center;
 }
 
 /* ---- hero layouts ----
@@ -1654,50 +1695,18 @@ button {
 }
 
 @media (max-width: 640px) {
-  /* A collage is wide. The hero band is a fixed height, so on a phone it is
-     close to square — and `cover` then throws away most of the width to fill
-     it, which is why Polly's collage first arrived cropped to its middle
-     third. Desktop is fine: there the band is wide enough that little is lost.
+  /* Taking the height from the picture is now what happens at every width,
+     so all that is left for phones is the shape she can choose to crop to:
+     a wide collage shown whole on a narrow screen is a thin strip, and she
+     may prefer fewer pieces shown properly. See HERO_MOBILE_CROPS.
 
-     So on a phone the band stops having a height of its own, and the picture
-     is given a shape instead — whichever one she picked in the site editor:
-
-       --hero-mcrop unset  → aspect-ratio: auto, height: auto. The picture
-                             keeps its own proportions and all of it shows.
-       --hero-mcrop set    → the picture is that shape whatever it started
-                             as, and `cover` trims the sides to fill it.
-
-     The shape is a ratio, not a pixel height, which is what makes this
-     self-adjusting: the band grows with the screen (taller on a Pro Max than
-     on an SE), and a new collage of any proportions fills it exactly — never
-     letterboxed, never leaving a gap, never needing a number changed here.
-
-     Only the two layouts where the image is the full-width band. 'side' and
-     'background' put it behind or beside text and need their fixed height. */
-  .pp-hero.layout-top .pp-hero-art,
-  .pp-hero.layout-image .pp-hero-art {
-    min-height: 0;
-    padding: 0;
-    display: block;
-  }
-  .pp-hero.layout-top .pp-hero-art .pp-photo,
-  .pp-hero.layout-image .pp-hero-art .pp-photo {
-    position: static;
-    inset: auto;
-    width: 100%;
-    height: auto;
-    display: block;
+     Unset — "show all of it" — leaves this `auto`, which is the base
+     behaviour: the picture's own proportions. A ratio rather than a pixel
+     height, so the band still grows with the phone and still fits a collage
+     of any shape exactly. */
+  .pp-hero.layout-top .pp-hero-art.haspic .pp-photo,
+  .pp-hero.layout-image .pp-hero-art.haspic .pp-photo {
     aspect-ratio: var(--hero-mcrop, auto);
-    /* Harmless when the shape is `auto`: the box is then already the
-       picture's own shape, so there is nothing for `cover` to trim. */
-    object-fit: cover;
-    object-position: center;
-  }
-  /* Without a photo the illustration still needs somewhere to sit. */
-  .pp-hero.layout-top .pp-hero-art:not(.haspic),
-  .pp-hero.layout-image .pp-hero-art:not(.haspic) {
-    min-height: var(--hero-h-sm, 300px);
-    display: flex;
   }
 
   /* The nav used to be hidden entirely here, which left About and Contact
