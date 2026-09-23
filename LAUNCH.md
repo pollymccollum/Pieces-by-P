@@ -579,3 +579,145 @@ fallback content rather than crashing if the database is unreachable.
 - New features or bugs still need Jack — normal software maintenance, and
   separate from running the shop.
 - Jack works via **her** logins rather than holding parallel access.
+
+## 11. Keeping it working for years, not weeks
+
+Section 9 was a point-in-time review: it read the code as it stood and fixed
+what was wrong. That is not what breaks a small shop three years later.
+
+What breaks a site over years is almost always something **outside** the code
+changing while the code stays still. A code review cannot see any of it.
+
+### The five things that actually go wrong
+
+| Risk | What it looks like when it happens | How often to check |
+|---|---|---|
+| **Dependency rot** | A security advisory lands against Next.js, the Stripe SDK or the Supabase client. Ignored for years, the eventual upgrade is a cliff rather than a step | every 6 months |
+| **A card expires** | Supabase, Netlify, Brevo or the domain lapses. The shop 404s, or emails stop sending with no error visible anywhere | yearly, and whenever a card is replaced |
+| **DNS drift** | Someone edits the Wix DNS and the DKIM records go with it. Emails keep "sending" and quietly start landing in spam | after any DNS change |
+| **Platform deprecation** | Supabase retires an API, Netlify changes build images, Node hits end of life | when a build fails for no local reason |
+| **Bus factor** | Jack becomes unavailable and nobody else knows how the pieces fit | continuously — this file is the mitigation |
+
+Supabase pausing is the sixth, and it has its own section — see **8. Keeping
+the site up**.
+
+### Dependency updates
+
+```bash
+npm audit                 # what has a known advisory
+npm outdated              # how far behind each package is
+npm run build             # must stay clean after any bump
+npm run check:supabase    # must stay clean too
+```
+
+Patch and minor bumps are routine. **Major** bumps — Next 16 → 17, React 19 →
+20, Stripe 22 → 23 — are a deliberate job with testing, not something to do
+casually on a Sunday. Do them one at a time, never together.
+
+The Stripe API version is **pinned** in `lib/stripe.ts` (`2026-07-29.dahlia`).
+That pin is what stops Stripe changing its API under a running shop. Do not
+remove it, and only move it deliberately, reading Stripe's migration notes.
+
+### Billing and expiry
+
+Four accounts can silently fail on a dead card: **Supabase**, **Netlify**,
+**Brevo**, and the **domain** at Wix. All are in Polly's name (section 1), so
+the renewal notices go to her. Worth a calendar reminder once a year to check
+all four are on a live card.
+
+Stripe is the exception — it takes its fee per transaction, so there is no
+card to expire.
+
+### If the emails ever go quiet
+
+The failure mode is not an error; it is silence. Check, in order:
+
+1. Brevo dashboard → are the sends being *attempted*?
+2. Brevo → Senders & Domains → is the domain still authenticated?
+3. Wix DNS → are all four DKIM/DMARC records still present?
+4. `orders.confirmation_email` in Supabase — null means the server never tried
+
+### The handover file
+
+This document, `README.md` and `BUILD-BRIEF.md` are the bus-factor
+mitigation. If any of them stops matching how the shop actually works, fix
+the file — a wrong runbook is worse than no runbook.
+
+---
+
+## 12. Code audits
+
+### When to run one
+
+| Trigger | Depth |
+|---|---|
+| **After the first real order on live Stripe** | Full audit. This is the big one — see below |
+| Every ~6 months | `npm audit` and dependency bumps, not a full read |
+| After changing **money, auth, or email** | Full audit of the changed area |
+| Before a major framework upgrade | Full audit, so you can tell new breakage from old |
+
+**The first-live-order audit is the one that matters.** Sandbox, test and
+live are three isolated Stripe environments with separate webhook secrets, so
+the live payment path is genuinely untested code until real money moves
+through it. An audit run before that switch cannot look at it. Run it once
+there is one real order — and one refund — in the database to check against.
+
+### `/code-review ultra`
+
+A multi-agent review that runs in the cloud: several agents read the codebase
+in parallel from different angles, then their findings are consolidated and
+verified rather than dumped raw.
+
+```
+/code-review ultra              # the current branch
+/code-review ultra 42           # GitHub PR #42
+```
+
+`/ultrareview` is a deprecated alias for the same thing.
+
+**What it needs.** A git repository. The no-argument form bundles the local
+branch, so it does **not** need a GitHub remote or an open PR — useful here,
+where most work lands straight on `main`.
+
+**Who starts it.** You do, by typing it. Claude cannot launch it on your
+behalf, deliberately: it is a billed action and the decision to spend is the
+account holder's.
+
+### What it costs
+
+Honest answer: **there is no dollar price to quote.** It does not have a
+sticker price like a Supabase plan. It draws down the usage allowance of
+whatever Claude plan the account is on, the same pool that ordinary
+conversations use.
+
+What can be said about the shape of the cost:
+
+- It is **substantially more expensive than a normal review**, because it is
+  many agents each reading the codebase rather than one.
+- Consumption scales with **repository size** and the **effort level**, so a
+  codebase this size costs less than a large one.
+- It is **one-off, not recurring** — nothing keeps running after it finishes.
+
+Before running it, check the plan's remaining usage in the Claude app. The
+same discipline as the Netlify build credits: know what is left before
+spending a chunk of it.
+
+### Why it is worth spending on at that moment
+
+A full audit is worth the most on the version of the code that is **actually
+taking payments**. Run it a week early and it reviews a shop that cannot yet
+charge anyone; run it after the first live order and it reviews the real
+thing, with real data.
+
+### Cheap checks that are not a substitute
+
+These cost nothing and should be run far more often than an audit:
+
+```bash
+npm run build             # types, lint and a real production build
+npm run check:supabase    # schema, columns, policies, env vars
+npm audit                 # known advisories in dependencies
+```
+
+`npm run check:supabase` is the one that catches the class of bug that has
+actually bitten this project — a migration written but never run.
