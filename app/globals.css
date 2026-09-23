@@ -1591,6 +1591,13 @@ button {
   align-items: center;
   text-align: center;
   flex-wrap: wrap;
+  /* Same reasoning as .pp-headrow, and the same numbers. The green band runs
+     edge to edge, but .pp-wrap held its contents to 1180px, so on a wide
+     monitor the wordmark and the copyright floated inward with a stripe of
+     empty green outside them. This wins over .pp-wrap on source order: equal
+     specificity, declared later. */
+  max-width: none;
+  padding: 0 22px;
 }
 .pp-fword {
   font-family: var(--serif);
@@ -1817,6 +1824,9 @@ button {
     text-align: left;
     align-items: center;
     gap: 18px 28px;
+    /* Matches the header's inset exactly, so the wordmark at the bottom of
+       the page sits on the same line as the logo at the top. */
+    padding: 0 34px;
   }
   /* Wrap onto its own line rather than being truncated at narrow widths. */
   .pp-fine {
