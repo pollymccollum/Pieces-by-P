@@ -18,11 +18,12 @@ export function ContactPage({
 
   return (
     <section className="pp-page pp-contactpage">
+      {/* The script eyebrow that sat above the heading is gone at the owner's
+          request. Its 6px top margin went with it: that margin existed to
+          separate the heading from the eyebrow, and with nothing above it the
+          heading should start where the block starts. */}
       <div className="pp-contactintro">
-        <p className="pp-hero-eye">
-          <span className="pp-script">Get in touch</span>
-        </p>
-        <h1 className="pp-h1" style={{ marginTop: 6 }}>
+        <h1 className="pp-h1">
           <span style={fontStyle(fonts, "contactHeading")}>{contact.heading}</span>
         </h1>
       </div>
