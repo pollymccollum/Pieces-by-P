@@ -48,7 +48,11 @@ export default async function Piece(props: PageProps<"/piece/[slug]">) {
 
   return (
     <SiteChrome settings={settings}>
-      <ProductPage product={product} customBox={settings.customBox} />
+      <ProductPage
+        product={product}
+        customBox={settings.customBox}
+        returns={settings.returns}
+      />
     </SiteChrome>
   );
 }

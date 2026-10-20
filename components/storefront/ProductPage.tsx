@@ -9,6 +9,7 @@ import {
   stockState,
   type CustomOrderContent,
   type Product,
+  type ReturnsContent,
 } from "@/lib/types";
 import { money } from "@/lib/format";
 import { StrandArt } from "./visuals";
@@ -18,6 +19,23 @@ function newLineId() {
   return typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : Math.random().toString(36).slice(2, 10);
+}
+
+// The chevron on both dropdown rows. Inline rather than a font or an
+// entity so it inherits currentColor and can be rotated by CSS when the
+// row opens — see .pp-acc[open] .pp-accarrow.
+function AccArrow() {
+  return (
+    <svg className="pp-accarrow" width="11" height="7" viewBox="0 0 11 7" aria-hidden="true">
+      <path
+        d="M1 1l4.5 4.5L10 1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 // One piece, on its own page.
@@ -30,9 +48,11 @@ function newLineId() {
 export function ProductPage({
   product,
   customBox,
+  returns,
 }: {
   product: Product;
   customBox: CustomOrderContent;
+  returns: ReturnsContent;
 }) {
   const router = useRouter();
   const { cart } = useCart();
@@ -270,23 +290,23 @@ export function ProductPage({
               <details className="pp-acc">
                 <summary>
                   Description
-                  <svg
-                    className="pp-accarrow"
-                    width="11"
-                    height="7"
-                    viewBox="0 0 11 7"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M1 1l4.5 4.5L10 1"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+                  <AccArrow />
                 </summary>
                 <p className="pp-desc">{product.description}</p>
+              </details>
+            )}
+
+            {/* Same row, her wording. Hidden entirely while the body is
+                empty — a dropdown that opens on nothing reads as broken. */}
+            {returns.body.trim() && (
+              <details className="pp-acc">
+                <summary>
+                  {returns.label.trim() || "Returns and Exchanges"}
+                  <AccArrow />
+                </summary>
+                {/* pre-line, so the paragraph breaks she types in the admin
+                    survive without her needing to know any markup. */}
+                <p className="pp-desc pp-accbody">{returns.body.trim()}</p>
               </details>
             )}
           </div>

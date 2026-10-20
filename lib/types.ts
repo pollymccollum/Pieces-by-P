@@ -122,6 +122,19 @@ export type CustomOrderContent = {
   placeholder: string;
 };
 
+// The second dropdown under a piece's Add to cart, below Description.
+//
+// Shop-wide, like the box above: a returns policy is the same sentence on
+// every necklace, and writing it per piece would guarantee the day one of
+// them disagrees with the others.
+//
+// An empty body hides the row entirely rather than opening on nothing, so
+// the policy appears the moment she writes one and not before.
+export type ReturnsContent = {
+  label: string;
+  body: string;
+};
+
 // The two lines above the shop grid. Hardcoded until now, which made
 // them the only headings on the storefront she couldn't reach.
 export type ShopContent = {
@@ -447,5 +460,6 @@ export type SiteSettingsData = {
   about: AboutContent;
   contact: ContactContent;
   customBox: CustomOrderContent;
+  returns: ReturnsContent;
   emails: EmailContent;
 };

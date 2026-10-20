@@ -673,6 +673,54 @@ export function ContentEditor({ initial }: { initial: SiteSettingsData }) {
         </div>
       </div>
 
+      {/* ---- returns ---- */}
+      <div className="ad-card">
+        <p className="ad-sec">Returns and exchanges</p>
+        <p className="ad-help" style={{ marginBottom: 14 }}>
+          A dropdown under <b>Add to cart</b> on every piece, below the
+          description. Leave the wording empty and the row doesn&apos;t appear
+          at all — so it shows up the moment you write one.
+        </p>
+
+        <div className="ad-field">
+          <span className="ad-lbl">Heading</span>
+          <input
+            className="pp-input"
+            maxLength={60}
+            value={s.returns.label}
+            onChange={(e) => patch({ returns: { ...s.returns, label: e.target.value } })}
+          />
+        </div>
+
+        <div className="ad-field" style={{ marginTop: 10 }}>
+          <span className="ad-lbl">What it says</span>
+          <textarea
+            className="pp-textarea"
+            style={{ minHeight: 120 }}
+            value={s.returns.body}
+            onChange={(e) => patch({ returns: { ...s.returns, body: e.target.value } })}
+          />
+          <span className="ad-help">
+            Three or four sentences is plenty: how long someone has, what
+            condition a piece needs to come back in, who pays return postage,
+            and how to start one. Your line breaks are kept as you type them.
+          </span>
+        </div>
+
+        {/* Shown the way a customer meets it — closed, with her heading on
+            it — because the wording reads differently inside the row than it
+            does in a textarea. */}
+        <div className="ad-boxprev" style={{ marginTop: 14 }}>
+          <span className="ad-boxprev-lbl">
+            {s.returns.label.trim() || "Returns and Exchanges"} ⌄
+          </span>
+          <div className="ad-boxprev-input" style={{ whiteSpace: "pre-line" }}>
+            {s.returns.body.trim() || "Nothing written yet — the row is hidden."}
+          </div>
+          <div className="ad-boxprev-note">Preview</div>
+        </div>
+      </div>
+
       {/* ---- shipping + categories ---- */}
       <div className="ad-card">
         <p className="ad-sec">Shipping &amp; payment</p>

@@ -64,6 +64,12 @@ const FALLBACK_SETTINGS: SiteSettingsData = {
     label: "Make it yours",
     placeholder: "Color swaps, initials, team colors, sizing…",
   },
+  // Deliberately empty. A half-written returns policy shown to a customer
+  // is worse than none, so the row stays hidden until she writes one.
+  returns: {
+    label: "Returns and Exchanges",
+    body: "",
+  },
   emails: {
     notifyOnOrder: true,
     notifyOnMessage: true,
@@ -201,6 +207,7 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
     // Merged like the rest: a settings row written before this existed
     // still gets the default wording rather than blank emails.
     customBox: { ...FALLBACK_SETTINGS.customBox, ...row.customBox },
+    returns: { ...FALLBACK_SETTINGS.returns, ...row.returns },
     // Merged one level deeper than the rest, because each email is its own
     // object now. The two string fields that came before are carried across
     // rather than dropped — she may already have written them.

@@ -1052,6 +1052,16 @@ button {
   margin: 0;
   padding: 0 2px 18px;
 }
+/* Two stacked rows would otherwise meet on a doubled 2px rule. */
+.pp-acc + .pp-acc {
+  margin-top: 0;
+  border-top: none;
+}
+/* Her returns wording comes from a textarea, so the line and paragraph
+   breaks she typed are the ones she meant. */
+.pp-accbody {
+  white-space: pre-line;
+}
 .pp-close {
   position: absolute;
   top: 14px;
