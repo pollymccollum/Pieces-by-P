@@ -157,8 +157,6 @@ export function ProductPage({
             <h1 className="pp-piecename">{product.name}</h1>
             <div className="pp-pieceprice">{money(product.price_cents)}</div>
 
-            {product.description && <p className="pp-desc">{product.description}</p>}
-
             {product.material && (
               <div className="pp-piecemade">
                 <span className="pp-spec">Made with</span>
@@ -261,6 +259,35 @@ export function ProductPage({
                   </div>
                 )}
               </>
+            )}
+
+            {/* Below the buy block at the owner's request, and closed to start.
+                <details> rather than state and a click handler: it opens with
+                no JavaScript, the keyboard and screen readers get it for free,
+                and the text stays in the page source either way, so Google
+                still reads a description the visitor hasn't expanded. */}
+            {product.description && (
+              <details className="pp-acc">
+                <summary>
+                  Description
+                  <svg
+                    className="pp-accarrow"
+                    width="11"
+                    height="7"
+                    viewBox="0 0 11 7"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M1 1l4.5 4.5L10 1"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </summary>
+                <p className="pp-desc">{product.description}</p>
+              </details>
             )}
           </div>
         </div>

@@ -1002,6 +1002,56 @@ button {
   font-size: 14.5px;
   line-height: 1.65;
 }
+
+/* The description accordion under Add to cart on a piece's page.
+   Rules above and below so it reads as a row to open rather than as a
+   stray line of text, which is the whole point of the pattern. */
+.pp-acc {
+  margin-top: 26px;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.pp-acc summary {
+  /* Both needed: Safari draws the triangle through its own pseudo-element
+     and ignores list-style, every other browser does the opposite. */
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 2px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  user-select: none;
+}
+.pp-acc summary::-webkit-details-marker {
+  display: none;
+}
+.pp-acc summary:hover {
+  color: var(--sage-deep);
+}
+/* Keyboard users land here with Tab and open with Enter or Space, so the
+   focus ring has to be visible — the default one is suppressed by the
+   flex/list-style reset on some browsers. */
+.pp-acc summary:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.pp-accarrow {
+  flex: none;
+  transition: transform 0.18s ease;
+}
+.pp-acc[open] .pp-accarrow {
+  transform: rotate(180deg);
+}
+.pp-acc .pp-desc {
+  margin: 0;
+  padding: 0 2px 18px;
+}
 .pp-close {
   position: absolute;
   top: 14px;
