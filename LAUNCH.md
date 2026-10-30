@@ -500,6 +500,42 @@ Making it private does **not** take the site down — Netlify keeps serving the
 last successful build. It only blocks future builds from a second
 contributor.
 
+### Make it private at launch — checklist
+
+Polly moved to Netlify's **Personal plan** (Sept 2026), so the free plan's
+one-contributor rule may no longer apply. Check before assuming it is
+blocked.
+
+1. **Confirm nothing secret is in the history** — re-run before flipping it,
+   because making a repo private does not un-publish anything already pushed:
+
+   ```bash
+   git log --all --name-only --diff-filter=A | grep -i "\.env"   # only .env.example
+   git grep -I -nE "eyJ[A-Za-z0-9_-]{20,}" $(git rev-list --all)  # no JWTs
+   git grep -I -nE "sk_live_|whsec_[A-Za-z0-9]|xkeysib-[A-Za-z0-9]" $(git rev-list --all)
+   ```
+
+   Last run: **30 Oct 2026, clean.** `.env.local` has never been committed
+   and is ignored at `.gitignore:35`.
+
+2. **GitHub** → repo → Settings → General → Danger Zone → *Change
+   visibility* → Private.
+
+3. **Push a trivial commit and watch Netlify build.** If it fails with
+   *"unrecognized Git contributor"*, the contributor rule still applies —
+   either work signed in as Polly from then on, or revert to public. Do this
+   step the same day, not weeks later: a broken deploy pipeline discovered
+   during an emergency fix is the worst time to find out.
+
+4. If it goes private, **the live site keeps serving either way** — step 3
+   only tests future deploys.
+
+> **If a secret ever does get committed**, making the repo private is not the
+> fix. Rotate the key immediately — assume it is compromised from the moment
+> it was pushed. GitHub is crawled continuously by bots looking for exactly
+> this.
+
+
 ## 8. Keeping the site up
 
 Once deployed, the site runs on Netlify's servers 24/7. **No laptop is
