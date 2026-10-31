@@ -604,6 +604,20 @@ fallback content rather than crashing if the database is unreachable.
 
 **Re-run the checks** any time with `npm run check:supabase`.
 
+### RLS verified on the live project (31 Oct 2026)
+
+`supabase/verify-rls.sql` run against Polly's project. All six tables PASS:
+RLS on, policies present, and — the part that matters — `orders`,
+`order_items` and `messages` have **no public read policy**. A visitor
+holding the publishable key can create an order or send a message and
+cannot read one back. Customer names, emails and addresses are unreachable
+from a browser.
+
+`products`, `product_images` and `site_settings` are publicly readable by
+design; that is the storefront.
+
+Worth re-running after any schema change, and once more at launch.
+
 ## 10. After handover
 
 - Polly runs everything day to day: orders, pieces, photos, prices, stock,
