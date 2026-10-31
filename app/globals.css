@@ -729,6 +729,20 @@ button {
   width: 100%;
   height: 100%;
   object-fit: var(--photo-fit, cover);
+  /* Animates the scale on enter and leave only. transform-origin is its own
+     property and is never transitioned, so while the cursor pans the photo
+     tracks it exactly instead of swimming along behind. */
+  transition: transform 0.18s ease;
+}
+/* Only set once JS has confirmed a real pointer, so a touch device never
+   shows a magnifier cursor for a gesture it cannot perform. */
+.pp-piecemain.canzoom {
+  cursor: zoom-in;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-piecemain > .pp-photo {
+    transition: none;
+  }
 }
 /* On a phone: a horizontal strip under the photo, scrolled sideways if the
    piece has more than fits. A vertical strip here would take width away from

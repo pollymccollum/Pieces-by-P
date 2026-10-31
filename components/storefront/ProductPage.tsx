@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -104,6 +104,58 @@ export function ProductPage({
     setQty(1);
   };
 
+  // ---- hover-to-magnify on the main photo ----
+  //
+  // Desktop only, and gated on the device actually having a hover-capable
+  // pointer rather than on screen width: a tap fires a synthetic mousemove
+  // on many phones, which would leave a finger-sized zoom stuck on screen
+  // with no way to dismiss it. matchMedia runs in an effect, so the first
+  // render is identical on server and client.
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    const q = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const sync = () => setCanHover(q.matches);
+    sync();
+    q.addEventListener("change", sync);
+    return () => q.removeEventListener("change", sync);
+  }, []);
+
+  // Photos are downscaled to 2000px on upload and the frame renders around
+  // 600px wide, so there is roughly 3x of real detail to spend. Past about
+  // 2.5x this magnifies compression artefacts rather than beads.
+  const HOVER_ZOOM = 2.2;
+
+  // Polly's own crop already uses transform/transform-origin via
+  // focalStyle(), so the two are multiplied rather than one replacing the
+  // other — otherwise hovering a piece she has zoomed would snap it back.
+  const focalZoom =
+    typeof mainImg?.zoom === "number" && mainImg.zoom > 0 ? mainImg.zoom / 100 : 1;
+  const focalOrigin = `${mainImg?.focal_x ?? 50}% ${mainImg?.focal_y ?? 50}%`;
+
+  // Written straight to the node instead of through state: this fires on
+  // every pointer move, and re-rendering the whole page that often would
+  // risk jank on the one page that has to feel good. React owns the style
+  // attribute, so a re-render simply restores the un-zoomed base — a
+  // harmless outcome, not a broken one.
+  const zoomTo = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = imgRef.current;
+    if (!el || !canHover || !mainImg) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - box.left) / box.width) * 100;
+    const y = ((e.clientY - box.top) / box.height) * 100;
+    el.style.transformOrigin = `${x}% ${y}%`;
+    el.style.transform = `scale(${focalZoom * HOVER_ZOOM})`;
+  };
+
+  const zoomOff = () => {
+    const el = imgRef.current;
+    if (!el) return;
+    el.style.transformOrigin = focalZoom === 1 ? "" : focalOrigin;
+    el.style.transform = focalZoom === 1 ? "" : `scale(${focalZoom})`;
+  };
+
   return (
     <section className="pp-page pp-piecepage">
       <div className="pp-piecewrap">
@@ -120,10 +172,15 @@ export function ProductPage({
               little return. On a phone the strip runs underneath instead —
               a vertical one there would eat width the photo needs. */}
           <div className="pp-piecegallery">
-            <div className="pp-piecemain">
+            <div
+              className={`pp-piecemain ${mainImg && canHover ? "canzoom" : ""}`}
+              onMouseMove={zoomTo}
+              onMouseLeave={zoomOff}
+            >
               {mainImg ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
+                  ref={imgRef}
                   src={mainImg.url}
                   alt={product.name}
                   className="pp-photo"
