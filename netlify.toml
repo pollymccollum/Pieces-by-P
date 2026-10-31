@@ -18,3 +18,14 @@
   # than turning the check off (SECRETS_SCAN_ENABLED=false) or blinding it
   # to this key everywhere (SECRETS_SCAN_OMIT_KEYS).
   SECRETS_SCAN_OMIT_PATHS = ".netlify/.next/cache"
+
+  # Pin the runtime. Left unset, Netlify builds on whatever its current
+  # default image ships, and that default moves. A build then starts
+  # behaving differently from the same commit on a laptop for a reason
+  # nothing in the repo records — the worst kind of bug to meet a year
+  # later during an urgent fix.
+  #
+  # 24 is the active LTS line and what the site is developed against.
+  # Matches .nvmrc, which does the same job locally.
+  NODE_VERSION = "24"
+
